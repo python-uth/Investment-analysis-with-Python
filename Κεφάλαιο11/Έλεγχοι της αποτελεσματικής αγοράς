@@ -89,7 +89,6 @@ import numpy as np
 import yfinance as yf
 from datetime import timedelta
 from scipy.stats import ttest_1samp
-
 # εισάγουμε τα δεδομένα
 stock_ticker = 'PPC.AT' # εισάγουμε τον κωδικό διαπραγμάτευσης της μετοχής
 index_ticker = 'GD.AT' # εισάγουμε τον κωδικό διαπραγμάτευσης του δείκτη
