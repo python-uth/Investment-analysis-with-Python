@@ -1,0 +1,125 @@
+# Γράφημα της συνάρτησης αυτοσυσχέτισης (ACF)
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import yfinance as yf
+import pandas as pd
+import numpy as np
+from statsmodels.graphics.tsaplots import plot_acf
+import matplotlib.pyplot as plt
+# Ανάκτηση των δεδομένων και υπολογισμός αποδόσεων
+stock_data = yf.download('MYTIL.AT', start='2021-01-01', end='2024-01-01')
+stock_data['Daily Return'] = stock_data['Adj Close'].pct_change()
+stock_data = stock_data.dropna()
+# Γράφημα συνάρτησης αυτοσυσχέτισης
+lags = 15
+plot_acf(stock_data['Daily Return'], lags=lags)
+plt.show()
+
+
+# Έλεγχος Ροών
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import yfinance as yf
+import numpy as np
+from statsmodels.sandbox.stats.runs import runstest_1samp
+# Ανακτούμε τα δεδομένα από το Yahoo Finance και υπολογίζουμε τις αποδόσεις
+data = yf.download('HTO.AT', start='2022-01-01', end='2024-01-01')
+data['returns'] = data['Adj Close'].pct_change()
+# Μετατρέπουμε τις αποδόσεις σε πρόσημα (+1 ή -1), εξαιρώντας τυχόν μηδενικές αποδόσεις 
+data['signs'] = np.sign(data['returns']).replace({0: np.nan}).dropna()
+signs = data['signs'].dropna()
+# Κάνουμε τον έλεγχο ροών
+z_stat, p_value = runstest_1samp(signs)
+# Εμφανίζουμε τα αποτελέσματα
+print(f"Z-statistic: {z_stat}")
+print(f"P-value: {p_value}")
+# Ερμηνεύουμε τα αποτελέσματα
+alpha = 0.05
+if p_value > alpha:
+    print("Αποτυχία απόρριψης της μηδενικής υπόθεσης τυχαιότητας: Η σειρά εμφανίζεται να είναι τυχαία")
+else:
+    print("Απόρριψη της μηδενικής υπόθεσης τυχαιότητας: Η σειρά εμφανίζεται να μην είναι τυχαία")
+
+
+# Ανάλυσης γεγονότων (event study)
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import pandas as pd
+import numpy as np
+import yfinance as yf
+from datetime import timedelta
+from scipy.stats import ttest_1samp
+# εισάγουμε τα δεδομένα
+stock_ticker = 'ΧΧΧΧ' # εισάγουμε τον κωδικό διαπραγμάτευσης της μετοχής
+index_ticker = 'ΧΧΧ' # εισάγουμε τον κωδικό διαπραγμάτευσης του δείκτη
+# προσδιορίζουμε την περίοδο εκτίμησης και γεγονότος
+event_date = pd.to_datetime('ΕΕΕΕ-ΜΜ-ΗΗ') # εισάγουμε την ημερομηνία της ανακοίνωσης
+event_window = Χ  # εισάγουμε το παράθυρο γεγονότος (event window)
+estimation_window = ΧΧ # εισάγουμε το παράθυρο εκτίμησης/αναφοράς (estimation window)
+# Κατεβάζουμε τα δεδομένα και υπολογίζουμε τις ημερήσιες αποδόσεις
+start_date = event_date - timedelta(days=estimation_window + event_window)
+end_date = event_date + timedelta(days=event_window)
+stock_data = yf.download(stock_ticker, start=start_date, end=end_date)
+index_data = yf.download(index_ticker, start=start_date, end=end_date)
+stock_returns = stock_data['Adj Close'].pct_change().dropna()
+index_returns = index_data['Adj Close'].pct_change().dropna()
+# Ορίζουμε το παράθυρο εκτίμησης/αναφοράς (estimation window)
+estimation_end = event_date - timedelta(days=event_window+1)
+estimation_start = estimation_end - timedelta(days=estimation_window)
+# Υπολογίζουμε τις κανονικές αποδόσεις με βάση το CAPM για το παράθυρο εκτίμησης/αναφοράς
+estimation_period_returns = stock_returns[estimation_start:estimation_end]
+market_estimation_period_returns = index_returns[estimation_start:estimation_end]  
+beta, alpha = np.polyfit(market_estimation_period_returns, estimation_period_returns, 1)
+# Ορίζουμε το παράθυρο γεγονότος (event window)
+event_period_returns = stock_returns[event_date - timedelta(days=event_window):event_date + timedelta(days=event_window)]
+market_event_period_returns = index_returns[event_date - timedelta(days=event_window):event_date + timedelta(days=event_window)]
+# Υπολογίζουμε τις κανονικές και μη κανονικές αποδόσεις για το παράθυρο γεγονότος
+expected_returns = alpha + beta * market_event_period_returns
+abnormal_returns = event_period_returns - expected_returns
+# Υπολογίζουμε και εμφανίζουμε τις σωρευτικές μη κανονικές αποδόσεις
+cumulative_abnormal_return = abnormal_returns.sum()
+print(f"Σωρευτική μη-κανονική απόδοση: {cumulative_abnormal_return:.2%}")
+# Κάνουμε τον έλεγχο t-test και εμφανίζουμε τα αποτελέσματα
+t_stat, p_value = ttest_1samp(abnormal_returns, 0)
+print("T-statistic:", t_stat)
+print("P-value:", p_value)
+
+
+# Ανάλυσης γεγονότων - ΔΕΗ
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import pandas as pd
+import numpy as np
+import yfinance as yf
+from datetime import timedelta
+from scipy.stats import ttest_1samp
+# εισάγουμε τα δεδομένα
+stock_ticker = 'PPC.AT' # εισάγουμε τον κωδικό διαπραγμάτευσης της μετοχής
+index_ticker = 'GD.AT' # εισάγουμε τον κωδικό διαπραγμάτευσης του δείκτη
+# προσδιορίζουμε την περίοδο εκτίμησης και γεγονότος
+event_date = pd.to_datetime('2024-04-09') # εισάγουμε την ημερομηνία της ανακοίνωσης
+event_window = 3  # εισάγουμε το παράθυρο γεγονότος (event window)
+estimation_window = 365 # εισάγουμε το παράθυρο εκτίμησης/αναφοράς (estimation window)
+# Κατεβάζουμε τα δεδομένα και υπολογίζουμε τις ημερήσιες αποδόσεις
+start_date = event_date - timedelta(days=estimation_window + event_window)
+end_date = event_date + timedelta(days=event_window)
+stock_data = yf.download(stock_ticker, start=start_date, end=end_date)
+index_data = yf.download(index_ticker, start=start_date, end=end_date)
+stock_returns = stock_data['Adj Close'].pct_change().dropna()
+index_returns = index_data['Adj Close'].pct_change().dropna()
+# Ορίζουμε το παράθυρο εκτίμησης/αναφοράς (estimation window)
+estimation_end = event_date - timedelta(days=event_window+1)
+estimation_start = estimation_end - timedelta(days=estimation_window)
+# Υπολογίζουμε τις κανονικές αποδόσεις με βάση το CAPM για το παράθυρο εκτίμησης/αναφοράς
+estimation_period_returns = stock_returns[estimation_start:estimation_end]
+market_estimation_period_returns = index_returns[estimation_start:estimation_end]  
+beta, alpha = np.polyfit(market_estimation_period_returns, estimation_period_returns, 1)   
+# Ορίζουμε το παράθυρο γεγονότος (event window)
+event_period_returns = stock_returns[event_date - timedelta(days=event_window):event_date + timedelta(days=event_window)]
+market_event_period_returns = index_returns[event_date - timedelta(days=event_window):event_date + timedelta(days=event_window)]  
+# Υπολογίζουμε τις κανονικές και μη κανονικές αποδόσεις για το παράθυρο γεγονότος
+expected_returns = alpha + beta * market_event_period_returns
+abnormal_returns = event_period_returns - expected_returns
+# Υπολογίζουμε και εμφανίζουμε τις σωρευτικές μη κανονικές αποδόσεις
+cumulative_abnormal_return = abnormal_returns.sum()
+print(f"Σωρευτική μη-κανονική απόδοση: {cumulative_abnormal_return:.2%}")
+# Κάνουμε τον έλεγχο t-test και εμφανίζουμε τα αποτελέσματα
+t_stat, p_value = ttest_1samp(abnormal_returns, 0)
+print("T-statistic:", t_stat)
+print("P-value:", p_value)
