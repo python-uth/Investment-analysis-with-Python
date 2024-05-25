@@ -119,7 +119,6 @@ abnormal_returns = event_period_returns - expected_returns
 # Υπολογίζουμε και εμφανίζουμε τις σωρευτικές μη κανονικές αποδόσεις
 cumulative_abnormal_return = abnormal_returns.sum()
 print(f"Σωρευτική μη-κανονική απόδοση: {cumulative_abnormal_return:.2%}")
-
 # Κάνουμε τον έλεγχο t-test και εμφανίζουμε τα αποτελέσματα
 t_stat, p_value = ttest_1samp(abnormal_returns, 0)
 print("T-statistic:", t_stat)
