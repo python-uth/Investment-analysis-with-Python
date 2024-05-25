@@ -1,0 +1,43 @@
+# Υπολογισμός Απλού και Εκθετικού Κινητού μέσου όρου για μία μετοχή
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import yfinance as yf
+import pandas as pd
+import matplotlib.pyplot as plt
+# Ορίζουμε τον κωδικό διαπραγμάτευσης, το χρονικό διάστημα και τον δείκτη του ΚΜΟ 
+ticker = 'HTO.AT'
+start_date = '2020-01-01'
+end_date = '2024-01-01'
+window = 20 # θα υπολογίσουμε ΚΜΟ 20 ημερών
+# Ανακτούμε τα δεδομένα για τη συγκεκριμένη περίοδο
+stock_data = yf.download(ticker, start=start_date, end=end_date)
+# Υπολογίζουμε τον Απλό Κινητό Μέσο Όρο (SMA)
+sma = stock_data['Close'].rolling(window=window).mean()
+# Υπολογίζουμε τον Εκθετικό Κινητό Μέσο Όρο  (EMA)
+ema = stock_data['Close'].ewm(span=window).mean()
+# Δημιουργούμε το γράφημα
+plt.figure(figsize=(14, 7))
+plt.plot(stock_data['Close'], label='Τιμή Κλεισίματος', color='black')
+plt.plot(sma, label=f'ΚΜΟ {window} ημερών', color='red')
+plt.plot(ema, label=f'ΕΚΜΟ {window} ημερών', color='blue')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+
+# Σήματα Αγοράς και πώλησης με βάση την τομή ΚΜΟ
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import yfinance as yf
+import numpy as np
+import pandas as pd
+# Ορίζουμε τον κωδικό διαπραγμάτευσης της μετοχ΄ής και τις περίοδους των ΚΜΟ
+ticker = 'HTO.AT'
+window_short = 22 # ορίζουμε την περίοδο για τον βραχυχρόνιο ΚΜΟ
+window_long = 100 # ορίζουμε την περίοδο για τον μακροχρόνιο ΚΜΟ
+# Ανακτούμε τα δεδομένα για μια συγκεκριμένη χρονική περίοδο
+df = yf.download(ticker, start='2020-01-01', end='2023-10-01')
+# Υπολογίζουμε τους δύο ΚΜΟ
+df['SMA_short'] = df['Close'].rolling(window=window_short).mean()
+df['SMA_long'] = df['Close'].rolling(window=window_long).mean()
+# Δημιουργούμε τα σήματα
+df['Σήμα'] = 0
+df['Σήμα'][window_short:] = np.where(df['SMA_short'][window_short:] > df['SMA_long'][window_short:], 'Αγορά', 'Πώληση')
