@@ -1,0 +1,371 @@
+# Υπολογισμός Απόδοσης Χαρτοφυλακίου
+import yfinance as yf # εισάγουμε τη βιβλιοθήκη για να αντλήσουμε τις τιμές
+# Καθορίζουμε τον κωδικό διαπραγμάτευσης (ticker) της πρώτης μετοχής που θέλουμε να αναλύσουμε
+ticker1 = "AAPL"
+data1 = yf.download(ticker1, period='1y')[['Close']]
+# Καθορίζουμε τον κωδικό διαπραγμάτευσης (ticker) της δεύτερης μετοχής που θέλουμε να αναλύσουμε
+ticker2 = "GOOG"
+data2 = yf.download(ticker2, period='1y')[['Close']]
+# Υπολογισμός της ημερήσιας ποσοστιαίας απόδοσης για κάθε μία μετοχή
+Returns1 = data1['Close'].pct_change()
+Returns2 = data2['Close'].pct_change()
+# Καθορισμός των σταθμίσεων στο χαρτοφυλάκιο
+weight1 = 0.6
+weight2 = 0.4
+# Υπολογισμός της ημερήσιας απόδοσης του χαρτοφυλακίου που αποτελείται από τις δύο μετοχές
+Portfolio_Return = (Returns1 * weight1 + Returns2 * weight2).dropna()
+Portfolio_Return
+
+# Παράδειγμα 6-1
+import numpy as np # εισάγουμε τη βιβλιοθήκη που θα χρειαστούμε για τους υπολογισμούς
+# εισάγουμε τις αποδόσεις
+returns1 = [-3.58, -3.16, 5.74, 7.28, -0.45, 5.51, 3.09, 2.97, 5.33, 14.43,2.4,-0.68]
+returns2 = [-0.33, 4.43, -3.54, 11.71, 4.57, 0, 16.42, 4.29, 2.07, 16.03, -0.64, -13.38]
+# μετατρέπουμε τις αποδόσεις σε δεκαδικούς
+returns1 = [x / 100 for x in returns1]
+returns2 = [x / 100 for x in returns2]
+# Μετατρέπουμε τις λίστες σε numpy arrays για να κάνουμε τους υπολογισμούς
+returns1 = np.array(returns1)
+returns2 = np.array(returns2)
+# Καθορισμός Σταθμίσεων
+weight1 = 0.5
+weight2 = 0.5
+# Υπολογισμός αποδόσεων χαρτοφυλακίου
+portfolio_returns = (returns1 * weight1 + returns2 * weight2)
+# Υπολογισμός μέσης απόδοσης χαρτοφυλακίου
+portfolio_returns_avg = np.mean(portfolio_returns)
+# Υπολογισμός ετησιοποιημένης απόδοσης χαρτοφυλακίου
+annualized_portfolio_returns = portfolio_returns_avg * 12 # υποθέτουμε 12 μήνες
+# Υπολογισμός Διακύμανσης Αποδόσεων του χαρτοφυλακίου
+var = portfolio_returns.var()
+# Υπολογισμός Τυπικής Απόκλισης Αποδόσεων του χαρτοφυλακίου
+std = portfolio_returns.std()
+# Υπολογισμός Ετησιοποιημένης Διακύμανσης και Τυπικής Απόκλισης Ημερησίων Αποδόσεων του χαρτοφυλακίου
+annualized_var = var * 12 # υποθέτουμε 12 μήνες μέσα στο έτος
+annualized_std = std * (12 ** 0.5) # υποθέτουμε 12 μήνες μέσα στο έτος
+print(f"Μέση ημερήσια Απόδοση Χαρτοφυλακίου (%): {portfolio_returns_avg:.2%}") # ως ποσοστό, με 2 δεκαδικά
+print(f"Διακύμανση Χαρτοφυλακίου: {var:.4f}") # ως δεκαδικό, με 4 ψηφία
+print(f"Τυπική Απόκλιση Χαρτοφυλακίου (%): {std:.2%}") # ως ποσοστό, με 2 δεκαδικά
+print(f"Ετησιοποιημένη Απόδοση Χαρτοφυλακίου (%): {annualized_portfolio_returns:.2%}") # ως ποσοστό, με 2 δεκαδικά
+print(f"Ετησιοποιημένη Διακύμανση Χαρτοφυλακίου: {annualized_var:.4f}") # ως δεκαδικό, με 4 ψηφία
+print(f"Ετησιοποιημένη Τυπική Απόκλιση Χαρτοφυλακίου (%): {annualized_std:.2%}") # ως ποσοστό, με 2 δεκαδικά
+
+# Παράδειγμα 6-1 με πραγματικά ιστορικά στοιχεία
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import yfinance as yf
+import numpy as np
+# ορισμός χρονικής περιόδου
+start_date = "2023-01-01"
+end_date = "2023-12-31"
+# Λήψη ημερησίων τιμών για την πρώτη μετοχή
+ticker1 = "AAPL"
+data1 = yf.download(ticker1, start=start_date, end=end_date)
+# Λήψη ημερησίων τιμών για την δεύτερη μετοχή
+ticker2 = "GOOG"
+data2 = yf.download(ticker2, start=start_date, end=end_date)
+# Υπολογισμός Ημερησίων Αποδόσεων για την πρώτη μετοχή
+returns1 = data1['Close'].pct_change().dropna()
+# Υπολογισμός Ημερησίων Αποδόσεων για την δεύτερη μετοχή
+returns2 = data2['Close'].pct_change().dropna()
+# Καθορισμός Σταθμίσεων
+weight1 = 0.5
+weight2 = 0.5
+# Υπολογισμός αποδόσεων χαρτοφυλακίου
+portfolio_returns = (returns1 * weight1 + returns2 * weight2)
+# Υπολογισμός μέσης απόδοσης χαρτοφυλακίου
+portfolio_returns_avg = np.mean(portfolio_returns)
+# Υπολογισμός ετησιοποιημένης απόδοσης χαρτοφυλακίου
+annualized_portfolio_returns = portfolio_returns_avg * 252 # υποθέτουμε 252 ημέρες μέσα στο έτος
+# Υπολογισμός Διακύμανσης Αποδόσεων του χαρτοφυλακίου
+var = portfolio_returns.var()
+# Υπολογισμός Τυπικής Απόκλισης Αποδόσεων του χαρτοφυλακίου
+std = portfolio_returns.std()
+# Υπολογισμός Ετησιοποιημένης Διακύμανσης και Τυπικής Απόκλισης Ημερησίων Αποδόσεων του χαρτοφυλακίου
+annualized_var = var * 252 # υποθέτουμε 252 ημέρες μέσα στο έτοςς
+annualized_std = std * (252 ** 0.5) # υποθέτουμε 252 ημέρες μέσα στο έτος
+print(f"Μέση ημερήσια Απόδοση Χαρτοφυλακίου (%): {portfolio_returns_avg:.2%}") # ως ποσοστό, με 2 δεκαδικά
+print(f"Διακύμανση Χαρτοφυλακίου: {var:.4f}") # ως δεκαδικό, με 4 ψηφία
+print(f"Τυπική Απόκλιση Χαρτοφυλακίου (%): {std:.2%}") # ως ποσοστό, με 2 δεκαδικά
+print(f"Ετησιοποιημένη Απόδοση Χαρτοφυλακίου (%): {annualized_portfolio_returns:.2%}") # ως ποσοστό, με 2 δεκαδικά
+print(f"Ετησιοποιημένη Διακύμανση Χαρτοφυλακίου: {annualized_var:.4f}") # ως δεκαδικό, με 4 ψηφία
+print(f"Ετησιοποιημένη Τυπική Απόκλιση Χαρτοφυλακίου (%): {annualized_std:.2%}") # ως ποσοστό, με 2 δεκαδικά
+
+# Παράδειγμα 6-2
+import numpy as np
+import matplotlib.pyplot as plt
+# Δεδομένα
+returns1 = 0.0347
+std1 = 0.0605
+returns2 = 0.0397
+std2 = 0.0841
+# Καθορισμός Σταθμίσεων
+n_points = 15
+weights = np.linspace(0, 1, n_points)
+# Λίστες για την αποθήκευση των αποτελεσμάτων
+portfolio_returns = []
+portfolio_stds = []
+for w in weights:
+    # Υπολογισμός αποδόσεων και στάνταρντ αποκλίσεων για κάθε χαρτοφυλάκιο
+    portfolio_return = w * returns1 + (1 - w) * returns2
+    portfolio_std = np.sqrt((w * std1) ** 2 + ((1 - w) * std2) ** 2)
+    portfolio_returns.append(portfolio_return)
+    portfolio_stds.append(portfolio_std)
+plt.plot(portfolio_stds, portfolio_returns, '-o')
+plt.xlabel("Τυπική Απόκλιση")
+plt.ylabel("Απόδοση")
+
+# Παράδειγμα 6-3
+# εισάγουμε τη βιβλιοθήκη που θα χρειαστούμε για τους υπολογισμούς
+import numpy as np 
+# εισάγουμε τα δεδομένα
+returns = np.array([0.08, 0.10, 0.12, 0.16])
+cov_matrix = np.array([[ 0.05,  0.03,  0.1 ,  0.04],
+                       [ 0.1 ,  0.2 ,  0.06, -0.08],
+                       [ 0.06,  0.08,  0.25,  0.1 ],
+                       [ 0.03, -0.06,  0.04,  0.3 ]])
+weights1 = np.array([0.15, 0.20, 0.40, 0.25])
+weights2 = np.array([0.10, 0.30, 0.25, 0.35])
+# Υπολογισμός αποδόσεων χαρτοφυλακίου χρησιμοποιώντας το εσωτερικό γινόμενο πινάκων (dot product) αποδόσεων και σταθμίσεων
+portfolio_return1 = np.dot(returns, weights1)
+portfolio_return2 = np.dot(returns, weights2)
+# Υπολογισμός Διακύμανσης Αποδόσεων του χαρτοφυλακίου χρησιμοποιώντας τις σταθμίσεις και τον πίνακα Διακύμανσης – Συνδιακύμανσης
+portfolio_var1 = np.dot(weights1, np.dot(cov_matrix, weights1.T))
+portfolio_var2 = np.dot(weights2, np.dot(cov_matrix, weights2.T))
+# Υπολογισμός της συνδιακύμανσης των δύο χαρτοφυλακίων
+covariance = np.dot(weights1 @ cov_matrix, weights2.T)
+# Υπολογισμός του συντελεστή συσχέτισης των δύο χαρτοφυλακίων
+correlation = covariance / (np.sqrt(portfolio_var1) * np.sqrt(portfolio_var2))
+print(f"Απόδοση Χαρτοφυλακίου 1: {portfolio_return1:.2%}") # ως ποσοστό, με 2 δεκαδικά
+print(f"Διακύμανση Χαρτοφυλακίου 1: {portfolio_var1:.4f}") # ως δεκαδικό, με 4 ψηφία
+print(f"Απόδοση Χαρτοφυλακίου 2: {portfolio_return2:.2%}") # ως ποσοστό, με 2 δεκαδικά
+print(f"Διακύμανση Χαρτοφυλακίου 2: {portfolio_var2:.4f}") # ως δεκαδικό, με 4 ψηφία
+print(f"Συνδιακύμανση Χαρτοφυλακίων 1 και 2: {covariance:.4f}") # ως δεκαδικό, με 4 ψηφία
+print(f"Συντελεστής Συσχέτισης Χαρτοφυλακίων 1 και 2: {correlation:.4f}") # ως δεκαδικό, με 4 ψηφία
+
+# Παράδειγμα 6-5
+def min_var_portfolio (sigma_1 , sigma_2 , rho):
+    """
+    Υπολογίζει τις σταθμίσεις στο χαρτοφυλάκιο ελάχιστης διακύμανσης που αποτελείται από δύο τίτλους
+
+    Παράμετροι:
+    - sigma_1: η τυπική απόκλιση του πρώτου τίτλου (ως δεκαδικό)
+    - sigma_2: η τυπική απόκλιση του δεύτερου τίτλου (ως δεκαδικό)
+    - rho: ο συντελεστή συσχέτισης των αποδόσεων των δύο τίτλων (ως δεκαδικό)
+
+    Αποτέλεσμα:
+    - εμφανίζει τις σταθμίσεις των δύο τίτλων
+    """
+    w_1 = (sigma_2 **2 - sigma_1 * sigma_2 * rho) / (sigma_1 **2 + sigma_2 **2 - 2* sigma_1 * sigma_2 * rho)
+    return ( w_1 ,1 - w_1 )
+
+# Παράδειγμα 6-6
+# Εισάγουμε τις βιβλιοθήκες που θα χρειαστο΄ύμε
+import numpy as np
+import matplotlib.pyplot as plt
+# Εισάγουμε τα δεδομένα
+returns = np.array([0.1008, 0.1136, 0.0874])
+asset_std_devs = np.array([0.0846, 0.0985, 0.057])
+correlation_matrix = np.array([[1, 0.9055, 0.469], [0.9055, 1, 0.356], [0.469, 0.356, 1]])
+# Υπολογίζουμε τις συνδιακυμάνσεις
+covariance_matrix = np.outer(asset_std_devs, asset_std_devs) * correlation_matrix
+# σχηματίζουμε τον πίνακα C
+covariance_matrix2 = 2 * np.outer(asset_std_devs, asset_std_devs) * correlation_matrix
+cov_with_returns_and_ones = np.hstack((covariance_matrix2, returns.reshape(-1, 1), np.ones((3, 1))))
+returns_row = np.hstack((returns, [0, 0]))
+sum_constraint_row = np.array([1, 1, 1, 0, 0])
+C = np.vstack((cov_with_returns_and_ones, returns_row, sum_constraint_row))
+# υπολογισμός σταθμίσεων και κινδύνου
+desired_returns = [0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13] # ορίζουμε τις επιθυμητές αποδόσεις
+optimal_weights_for_each_return = []
+portfolio_std_devs = []
+N = len(returns)
+for desired_return in desired_returns:
+    # σχηματίζουμε τον πίνακα K
+    K = [0, 0, 0, desired_return, 1]
+    # υπολογίζουμε τον πίνακα C-1
+    C_inv = np.linalg.inv(C)
+    # υπολογίζουμε τον πίνακα Χ
+    weights = np.dot(C_inv, K)[:N]
+    # Υπολογίζουμε την τυπική απόκλιση του χαρτοφυλακίου με τις σταθμισεις Χ
+    portfolio_variance = np.dot(weights.T, np.dot(covariance_matrix, weights))
+    portfolio_std_dev = np.sqrt(portfolio_variance)
+    # Αποθηκεύουμε τα αποτελέσματα
+    optimal_weights_for_each_return.append(weights)
+    portfolio_std_devs.append(portfolio_std_dev)
+# Εμφανίζουμε τις σταθμίσεις και τον κίνδυνο του χαρτοφυλακίου για τις επιθυμητές αποδόσεις
+for i, (optimal_weights, std_dev) in enumerate(zip(optimal_weights_for_each_return, portfolio_std_devs)):
+    print(f"Επιθυμητή Απόδοση: {desired_returns[i]}, Σταθμίσεις: {optimal_weights}, σ Χαρτοφυλακίου: {std_dev}")
+# Σχηματίζουμε το Αποτελεσματικό Σύνορο
+plt.figure(figsize=(10, 6))
+plt.plot(portfolio_std_devs, desired_returns, marker='o', linestyle='-', color='b')
+plt.title('Αποτελεσματικό Σύνορο')
+plt.xlabel('Τυπική Απόκλιση (Κίνδυνος)')
+plt.ylabel('Αναμενόμενη Απόδοση')
+plt.grid(True)
+plt.show()
+
+# Παράδειγμα 6-7
+# Εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.optimize import minimize
+# Εισάγουμε τα δεδομένα
+returns = np.array([0.1008, 0.1136, 0.0874])
+asset_std_devs = np.array([0.0846, 0.0985, 0.057])
+correlation_matrix = np.array([[1, 0.9055, 0.469], [0.9055, 1, 0.356], [0.469, 0.356, 1]])
+# Υπολογίζουμε τις συνδιακυμάνσεις
+covariance_matrix = np.outer(asset_std_devs, asset_std_devs) * correlation_matrix
+# Δημιουργούμε τη συνάρτηση για τον υπολογισμό της απόδοσης και της τυπικής απόκλισης του χαρτοφυλακίου
+def portfolio_performance(weights, returns, covariance_matrix):
+    portfolio_return = np.dot(weights, returns)
+    portfolio_volatility = np.sqrt(np.dot(weights.T, np.dot(covariance_matrix, weights)))
+    return portfolio_return, portfolio_volatility
+# Δημιουργούμε τη συνάρτηση που ελαχιστοποιεί τον κίνδυνο για κάθε επίπεδο απόδοσης
+def minimize_volatility_for_given_return(target_return, returns, covariance_matrix):
+    num_assets = len(returns)
+    initial_weights = num_assets * [1./num_assets,]
+    def function_to_minimize(weights):
+        return portfolio_performance(weights, returns, covariance_matrix)[1]
+    # Περιορισμοί
+    constraints = (
+        {'type': 'eq', 'fun': lambda x: portfolio_performance(x, returns, covariance_matrix)[0] - target_return}, 
+        {'type': 'eq', 'fun': lambda x: np.sum(x) - 1}  # Weights sum to 1
+    )
+    bounds = tuple((-2, 2) for asset in range(num_assets)) # οι σταθμίσεις από -200% έως +200%
+    # Αποτέλεσμα ελαχιστοποίησης
+    result = minimize(function_to_minimize, initial_weights, method='SLSQP', bounds=bounds, constraints=constraints)
+
+    return result
+# Σχηματίζουμε το Αποτελεσματικό Σύνορο
+target_returns = np.linspace(0.07, 0.131, 50)
+efficient_frontier = []
+
+for target in target_returns:
+    result = minimize_volatility_for_given_return(target, asset_returns, covariance_matrix)
+    if result.success:
+        efficient_frontier.append((result.fun, target))  # Append (volatility, return)
+efficient_frontier = np.array(efficient_frontier)
+plt.figure(figsize=(10, 6))
+plt.plot(efficient_frontier[:, 0], efficient_frontier[:, 1], 'b-', linewidth=2)
+plt.xlabel('Τυπική Απόκλιση (Κίνδυνος)')
+plt.ylabel('Αναμενόμενη Απόδοση')
+plt.title('Αποτελεσματικό Σύνορο')
+plt.grid(True)
+plt.show()
+
+# Παράδειγμα 6-8
+# Εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import numpy as np
+import matplotlib.pyplot as plt
+# Εισάγουμε τα δεδομένα
+returns = np.array([0.1008, 0.1136, 0.0874, 0.06])
+asset_std_devs = np.array([0.0846, 0.0985, 0.057, 0])
+correlation_matrix = np.array([[1, 0.9055, 0.469, 0], [0.9055, 1, 0.356, 0], [0.469, 0.356, 1, 0],[0, 0, 0, 0]])
+# Υπολογίζουμε τις συνδιακυμάνσεις
+covariance_matrix = np.outer(asset_std_devs, asset_std_devs) * correlation_matrix
+# σχηματίζουμε τον πίνακα C
+covariance_matrix2 = 2 * np.outer(asset_std_devs, asset_std_devs) * correlation_matrix
+cov_with_returns_and_ones = np.hstack((covariance_matrix2, returns.reshape(-1, 1), np.ones((4, 1))))
+returns_row = np.hstack((returns, [0, 0]))
+sum_constraint_row = np.array([1, 1, 1, 1, 0, 0])
+C = np.vstack((cov_with_returns_and_ones, returns_row, sum_constraint_row))
+# υπολογισμός σταθμίσεων και κινδύνου
+desired_returns = [0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15] # ορίζουμε τις επιθυμητές αποδόσεις
+optimal_weights_for_each_return = []
+portfolio_std_devs = []
+N = len(returns)
+for desired_return in desired_returns:
+    # σχηματίζουμε τον πίνακα K
+    K = [0, 0, 0,0, desired_return, 1]
+    # υπολογίζουμε τον πίνακα C-1
+    C_inv = np.linalg.inv(C)
+    # υπολογίζουμε τον πίνακα Χ
+    weights = np.dot(C_inv, K)[:N]
+    # Υπολογίζουμε την τυπική απόκλιση του χαρτοφυλακίου με τις σταθμισεις Χ
+    portfolio_variance = np.dot(weights.T, np.dot(covariance_matrix, weights))
+    portfolio_std_dev = np.sqrt(portfolio_variance)
+    # Αποθηκεύουμε τα αποτελέσματα
+    optimal_weights_for_each_return.append(weights)
+    portfolio_std_devs.append(portfolio_std_dev)
+# Εμφανίζουμε τις σταθμίσεις και τον κίνδυνο του χαρτοφυλακίου για τις επιθυμητές αποδόσεις
+for i, (optimal_weights, std_dev) in enumerate(zip(optimal_weights_for_each_return, portfolio_std_devs)):
+    print(f"Επιθυμητή Απόδοση: {desired_returns[i]}, Σταθμίσεις: {optimal_weights}, σ Χαρτοφυλακίου: {std_dev}")
+# Σχηματίζουμε το Αποτελεσματικό Σύνορο
+plt.figure(figsize=(10, 6))
+plt.plot(portfolio_std_devs, desired_returns, marker='o', linestyle='-', color='b')
+plt.title('Αποτελεσματικό Σύνορο')
+plt.xlabel('Τυπική Απόκλιση (Κίνδυνος)')
+plt.ylabel('Αναμενόμενη Απόδοση')
+plt.grid(True)
+plt.xlim(left=0) # ορίζουμε ως αρχή του οριζόντιου άξονα το 0
+plt.ylim(bottom=0) # ορίζουμε ως αρχή του κάθετου άξονα το 0
+plt.show()
+
+# Υπολογισμός χαρτοφυλακίου στο οποίο μεγιστοποιείται η απόδοση ανά μονάδα κινδύνου
+# Εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.optimize import minimize
+# Εισάγουμε τα δεδομένα
+returns = np.array([0.1008, 0.1136, 0.0874])
+asset_std_devs = np.array([0.0846, 0.0985, 0.057])
+correlation_matrix = np.array([[1, 0.9055, 0.469], [0.9055, 1, 0.356], [0.469, 0.356, 1]])
+risk_free_rate = 0.06  # επιτόκιο δίχως κίνδυνο
+# Υπολογίζουμε τις συνδιακυμάνσεις
+covariance_matrix = np.outer(asset_std_devs, asset_std_devs) * correlation_matrix
+# Δημιουργούμε τη συνάρτηση για τον υπολογισμό της απόδοσης και της τυπικής απόκλισης του χαρτοφυλακίου
+def portfolio_performance(weights, returns, covariance_matrix):
+    portfolio_return = np.dot(weights, returns)
+    portfolio_volatility = np.sqrt(np.dot(weights.T, np.dot(covariance_matrix, weights)))
+    return portfolio_return, portfolio_volatility
+# Δημιουργούμε τη συνάρτηση για τον υπολογισμό της κλίσης (αρνητική τιμή)
+def negative_sharpe_ratio(weights, returns, covariance_matrix, risk_free_rate):
+    portfolio_return, portfolio_volatility = portfolio_performance(weights, returns, covariance_matrix)
+    return -(portfolio_return - risk_free_rate) / portfolio_volatility
+# Περιορισμοί και όρια
+constraints = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1})  # οι σταθμίσεις αθροίζουν στη 1
+bounds = tuple((-2, 2) for _ in returns)  # οι σταθμίσεις παίρνουν τιμές μεταξύ -200% και +200%
+# Βελτιστοποίηση για την εύρεση του εφαπτόμενου χαρτοφυλακίου
+initial_weights = np.ones(len(returns)) / len(returns)
+opts = minimize(negative_sharpe_ratio, initial_weights, args=(returns, covariance_matrix, risk_free_rate),
+                method='SLSQP', bounds=bounds, constraints=constraints)
+if opts.success:
+    tangent_weights = opts.x
+    tangent_return, tangent_volatility = portfolio_performance(tangent_weights, returns, covariance_matrix)
+    print("Σταθμίσεις εφαπτόμενου χαρτοφυλακίου:", tangent_weights)
+    print("Απόδοση εφαπτόμενου χαρτοφυλακίου:", tangent_return)
+    print("Τυπική Απόκλιση εφαπτόμενου χαρτοφυλακίου:", tangent_volatility)
+else:
+    print("Optimization failed:", opts.message)
+# Σχηματίζουμε το Αποτελεσματικό Σύνορο και το εφαπτόμενο χαρτοφυλάκιο
+plt.figure(figsize=(10, 6))
+plt.plot(efficient_frontier[:, 0], efficient_frontier[:, 1], 'b-', linewidth=2)
+plt.scatter(tangent_volatility, tangent_return, color='red', label='Εφαπτόμενο Χαρτοφυλάιο', zorder=5)
+plt.xlabel('Τυπική Απόκλιση (Κίνδυνος)')
+plt.ylabel('Αναμενόμενη Απόδοση')
+plt.title('Αποτελεσματικό Σύνορο και εφαπτόμενο χαρτοφυλάκιο')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Σχεδιάζοντας την Γραμμή Κεφαλαιαγοράς
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import matplotlib.pyplot as plt
+# εισάγουμε αρχικά τα δεδομένα
+rf = 0.03 # έστω το επικόκιο δίχως κίνδυνο
+rm = 0.1 # έστω η απόδοση του χαρτοφυλακίου της αγοράς
+marketSD = 0.2 # έστω η τυπική απόκλιση του χαρτοφυλακίου της αγοράς
+# υπολογίζουμε την απόδοση και τον κίνδυνο για διαφορετικά σ
+portfolioSD = [(marketSD*x)/25 for x in range(51)]
+portfolioReturns = [rf+((rm-rf)/marketSD)*x for x in portfolioSD]
+# σχεδιάζουμε την Γραμμή
+plt.plot(portfolioSD,portfolioReturns)
+plt.xlabel("Τυπική Απόκλιση")
+plt.ylabel("Απόδοση")
+plt.title("Γραμμή Κεφαλαιαγοράς - CML")
+plt.xlim([0, 0.5])
+plt.ylim([0, 0.18])
+plt.plot(marketSD,rm,"ro")
+plt.text(marketSD, rm, "Χαρτοφυλάκιο Αγοράς", fontsize=10)
+plt.plot(0,rf,"bo")
+plt.text(0,rf, "Επιτόκιο δίχως κίνδυνο", fontsize=10, ha='right')
