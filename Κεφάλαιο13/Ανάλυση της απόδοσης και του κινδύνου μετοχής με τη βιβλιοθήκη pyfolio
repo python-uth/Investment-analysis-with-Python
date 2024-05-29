@@ -1,0 +1,11 @@
+# Ανάλυση απόδοσης και κινδύνου μετοχής
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import pyfolio as pf
+import yfinance as yf
+
+# ανακτούμε τα ημερήσια κλεισίματα και υπολογίζουμε τις ημερήσιες αποδόσεις για τη μετοχή του ΟΤΕ για 5 έτη
+data = yf.download('HTO.AT', period='5y')
+returns = data['Close'].pct_change().dropna()
+
+# Ανακαλούμε τα σχετικά μέτρα κινδύνου και απόδοσης
+pf.create_simple_tear_sheet(returns)
