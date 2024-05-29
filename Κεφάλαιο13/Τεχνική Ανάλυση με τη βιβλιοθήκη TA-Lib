@@ -1,0 +1,110 @@
+# Υπολογισμός ΚΜΟ
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import talib
+import yfinance as yf
+# Ανακτούμε τα δεδομένα για τη μετοχή/ δείκτη
+ticker = 'HTO.AT'
+data = yf.download(ticker, start='2020-01-01', end='2024-01-01')
+# Υπολογίζουμε τον κινητό μέσο όρο 30 ημερών
+sma_30 = talib.SMA(data['Close'], timeperiod=30)
+# Εμφανίζουμε τον ΚΜΟ
+print(sma_30)
+
+# Υπολογισμός δείκτη RSI
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import talib
+import yfinance as yf
+# Ανακτούμε τα δεδομένα για τη μετοχή/ δείκτη
+ticker = 'HTO.AT'
+data = yf.download(ticker, start='2020-01-01', end='2024-01-01')
+# Υπολογίζουμε τον δείκτη RSI 14 ημερών
+rsi_14 = talib.RSI(data['Close'], timeperiod=14)
+# Εμφανίζουμε τον δείκτη RSI
+print(rsi_14)
+
+# Υπολογισμός δείκτη MACD
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import talib
+import yfinance as yf
+# Ανακτούμε τα δεδομένα για τη μετοχή/ δείκτη
+ticker = 'HTO.AT'
+data = yf.download(ticker, start='2020-01-01', end='2024-01-01')
+# Υπολογίζουμε τους δείκτες MACD, MACD Signal, και MACD Histogram
+macd, macdsignal, macdhist = talib.MACD(data['Close'], fastperiod=12, slowperiod=26, signalperiod=9)
+# Εμφανίζουμε τους δείκτες MACD, MACD Signal, και MACD Histogram
+print(f'MACD: {macd}')
+print(f'MACD Signal: {macdsignal}')
+print(f'MACD Histogram: {macdhist}')
+
+# Υπολογισμός δείκτη Bollinger Bands
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import talib
+import yfinance as yf
+# Ανακτούμε τα δεδομένα για τη μετοχή/ δείκτη
+ticker = 'HTO.AT'
+data = yf.download(ticker, start='2020-01-01', end='2024-01-01')
+# Υπολογίζουμε τον δείκτη Bollinger Bands
+upperband, middleband, lowerband = talib.BBANDS(data['Close'], timeperiod=20, nbdevup=2, nbdevdn=2, matype=0)
+# Εμφανίζουμε τον δείκτη Bollinger Bands
+print(f'Upper Band: {upperband}')
+print(f'Middle Band: {middleband}')
+print(f'Lower Band: {lowerband}')
+
+# Υπολογισμός δείκτη Stochastic Oscillator
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import talib
+import yfinance as yf
+# Ανακτούμε τα δεδομένα για τη μετοχή/ δείκτη
+ticker = 'HTO.AT'
+data = yf.download(ticker, start='2020-01-01', end='2024-01-01')
+# Υπολογίζουμε τον δείκτη Stochastic Oscillator
+slowk, slowd = talib.STOCH(data['High'], data['Low'], data['Close'], 
+                           fastk_period=14, slowk_period=3, slowk_matype=0, 
+                           slowd_period=3, slowd_matype=0)
+# Εμφανίζουμε τον δείκτη Stochastic Oscillator
+print(f'Slow %K: {slowk}')
+print(f'Slow %D: {slowd}')
+
+# Γράφημα ΚΜΟ
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import talib
+import yfinance as yf
+# Ανακτούμε τα δεδομένα για τη μετοχή/ δείκτη
+ticker = 'HTO.AT'
+data = yf.download(ticker, start='2020-01-01', end='2024-01-01')
+# Υπολογίζουμε τον κινητό μέσο όρο 30 ημερών
+sma_30 = talib.SMA(data['Close'], timeperiod=30)
+# Γράφημα της τιμής και του ΚΜΟ
+plt.figure(figsize=(14, 7))
+plt.plot(data['Close'], label='Τιμή Κλεισίματος')
+plt.plot(sma_30, label='ΚΜΟ 30 ημερών')
+plt.title(f'Τιμή Κλείσιματος και Απλός ΚΜΟ για ΟΤΕ (2020-2023)')
+plt.legend()
+plt.show() 
+
+# Γράφημα δείκτη Stochastic Oscillator
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import talib
+import yfinance as yf
+import matplotlib.pyplot as plt
+# Ανακτούμε τα δεδομένα για τη μετοχή/ δείκτη
+ticker = 'HTO.AT'
+data = yf.download(ticker, start='2020-01-01', end='2024-01-01')
+# Υπολογίζουμε τον δείκτη Stochastic Oscillator
+slowk, slowd = talib.STOCH(data['High'], data['Low'], data['Close'], 
+                           fastk_period=14, slowk_period=3, slowk_matype=0, 
+                           slowd_period=3, slowd_matype=0)
+# Δημιουργία Γραφήματος
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), sharex=True)
+# Γράφημα τιμής κλεισίματος
+ax1.plot(data['Close'], label='Close Price')
+ax1.set_title(f'Τιμή Κλεισίματος ΟΤΕ (2020-2023)')
+# Γράφημα του Stochastic Oscillator
+ax2.plot(slowk, label='%K')
+ax2.plot(slowd, label='%D', linestyle='--')
+ax2.axhline(80, color='red', linestyle='--')
+ax2.axhline(20, color='green', linestyle='--')
+ax2.set_title(f'Στοχαστικός Ταλαντωτής για ΟΤΕ')
+ax2.legend()
+# Εμφάνιση γραφημάτων
+plt.show()
