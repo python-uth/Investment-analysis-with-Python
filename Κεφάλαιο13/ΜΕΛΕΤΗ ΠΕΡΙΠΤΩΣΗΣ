@@ -1,0 +1,116 @@
+# Συλλογή στοιχείων για τον Δείκτη
+import pandas as pd
+tables = pd.read_html('https://www.athexgroup.gr/web/guest/index-composition/-/select-index/62')
+
+table = tables[5] # μέσα στην αγκύλη βάζουμε τον αριθμό του πίνακα (από τους συνολικά οκτώ που υπάρχουν), εδώ δηλαδή ο πέμπτος πίνακας
+
+# Εξάγουμε από τον πίνακα τις πληροφορίες που μας ενδιαφέρουν
+# εισάγουμε τη βιβλιοθήκη που θα χρειαστούμε
+import numpy as np
+tickers = table['Symbol'].values.tolist() # παίρνουμε την στήλη Symbol και τη μετατρέπουμε σε λίστα
+weights_mkt = table['% Participation']/100 # παίρνουμε την στήλη % Participation διαιρούμε με το 100 (γιατί είναι ποσοστό) 
+weights_mkt = np.array(weights_mkt) # τη μετατρέπουμε σε πίνακα
+
+# Κατεβάζουμε τις τιμές των μετοχών
+import yfinance as yf # εισάγουμε τη βιβλιοθήκη για να κατεβάσουμε στοιχεία από το Yahoo Finance
+string = '.AT' # για να μπορέσει το Yahoo Finance να "αναγνωρίσει" τις ελληνικές μετοχές θα πρέπει να προστεθεί το .ΑΤ
+tickers = [x + string for x in tickers] # με την εντολή αυτή, σε κάθε ticker, προσθέτουμε το .ΑΤ στο τέλος
+prices = pd.DataFrame(columns=tickers) # δημιουργούμε το dataframe που θα αποθηκευτούν οι τιμές (με όνομα στήλης τον κωδικό διαπραγμάτευσης)
+prices = yf.download(tickers, period='1y')['Close'] # κατεβάζουμε τις τιμές κλεισίματος από το Yahoo Finance για τον τελευταίο χρόνο
+print(prices.head())
+
+# Υπολογίζουμε τις αποδόσεις των μετοχών
+returns = prices.pct_change() #υπολογίζουμε τις ημερήσιες αποδόσεις για κάθε μετοχή
+# εισάγουμε τις βιβλιοθήκες για την γραφική ανάλυση
+import seaborn as sns
+import matplotlib.pyplot as plt
+sns.set(font_scale=0.7)
+f, ax = plt.subplots(figsize=(15, 6))
+sns.heatmap(returns.corr(),annot=True,cmap='OrRd',linewidths=1)
+
+# υπολογισμός σταθμίσεων για χαρτοφυλάκιο που μεγιστοποιεί τον δείκτη Sharpe και για χαρτοφυλάκιο που ελαχιστοποιεί τον κίνδυνο
+# εισάγουμε τη βιβλιοθήκη
+from finquant.portfolio import build_portfolio
+pf = build_portfolio(data=prices) # φτιάχνουμε τα χαρτοφυλάκια χρησιμοποιώντας την σχετική εντολή της finquant
+pf.risk_free_rate = 0 # ορίζουμε το επιτόκιο δίχως κίνδυνο ίσο με μηδέν (μπορούμε να βάλουμε όποια τιμή επιθυμούμε)
+weights_min = pf.ef_minimum_volatility(verbose=True) # βρίσκουμε τις σταθμίσεις για το χαρτοφυλάκιο ελάχιστης διακύμανσης
+weights_min = np.array(weights_min) # μετατρέπουμε σε πίνακα
+weights_max = pf.ef_maximum_sharpe_ratio(verbose=True) # βρίσκουμε τις σταθμίσεις για το χαρτοφυλάκιο με τον μέγιστο δείκτη Sharpe
+weights_max = np.array(weights_max) # τις μετατρέπουμε σε πίνακα
+
+# γραφική απεικόνιση σταθμίσεων για χαρτοφυλάκιο που μεγιστοποιεί τον δείκτη Sharpe και για χαρτοφυλάκιο που ελαχιστοποιεί τον κίνδυνο
+weights_min = pf.ef_minimum_volatility(verbose=False)
+weights_min.plot(figsize=(16,6), kind='bar', width=0.8, legend=False, title='Σταθμίσεις Χαρτοφυλακίου Ελάχιστης Διακύμανσης')
+weights_max = pf.ef_maximum_sharpe_ratio(verbose=False)
+weights_max.plot(figsize=(16,6), kind='bar', width=0.8, legend=False, title='Σταθμίσεις Χαρτοφυλακίου Μέγιστου Δείκτη Sharpe')
+
+# υπολογισμός απόδοσης για τα 4 χαρτοφυλάκια
+returns_1 = returns.copy() #δημιουργούμε ένα αντίγραφο του dataframe returns, που θα χρησιμοποιούμε ως βάση για τους υπολογισμούς
+# υπολογισμός της απόδοσης για καθένα από τα 4 χαρτοφυλάκια (με βάση τις διαφορετικές σταθμίσεις) και αποθήκευση της απόδοσης στο dataframe returns
+# υπολογισμός της απόδοσης του χαρτοφυλακίου με τις ίσες σταθμίσεις
+weights = np.full((25, 1), 0.04, dtype=float) # δημιουργούμε τις σταθμίσεις (0,04 ή 4%)
+returns['Portfolio1'] = np.dot(returns_1,weights) # υπολογίζουμε τις ημερήσιες αποδόσεις του χαρτοφυλακίου και τις αποθηκεύουμε στο dataframe returns ως Portfolio1
+portfolio_annual_return = returns['Portfolio1'].mean()*250 # υπολογίζουμε την ετησιοποιημένη απόδοση του χαρτοφυλακίου
+#εμφανίζουμε την ετησιοποιημένη απόδοση του χαρτοφυλακίου
+print('Η ετησιοποιημένη απόδοση του χαρτοφυλακίου είναι: ' + str(np.round(portfolio_annual_return,3)*100)+'%')
+# υπολογισμός της απόδοσης του χαρτοφυλακίου με τις σταθμίσεις με βάση την κεφαλαιοποίηση
+returns['Portfolio2'] = np.dot(returns_1,weights_mkt) # υπολογίζουμε τις ημερήσιες αποδόσεις του χαρτοφυλακίου και τις αποθηκεύουμε στο dataframe returns ως Portfolio2
+portfolio_annual_return = returns['Portfolio2'].mean()*250 # υπολογίζουμε την ετησιοποιημένη απόδοση του χαρτοφυλακίου
+#εμφανίζουμε την ετησιοποιημένη απόδοση του χαρτοφυλακίου
+print('Η ετησιοποιημένη απόδοση του χαρτοφυλακίου είναι: ' + str(np.round(portfolio_annual_return,3)*100)+'%')
+# υπολογισμός της απόδοσης του χαρτοφυλακίου ελάχιστης διακύμανσης
+returns['Portfolio3'] = np.dot(returns_1,weights_min) # υπολογίζουμε τις ημερήσιες αποδόσεις του χαρτοφυλακίου και τις αποθηκεύουμε στο dataframe returns ως Portfolio3
+portfolio_annual_return = returns['Portfolio3'].mean()*250 # υπολογίζουμε την ετησιοποιημένη απόδοση του χαρτοφυλακίου
+#εμφανίζουμε την ετησιοποιημένη απόδοση του χαρτοφυλακίου
+print('Η ετησιοποιημένη απόδοση του χαρτοφυλακίου είναι: ' + str(np.round(portfolio_annual_return,3)*100)+'%')
+# υπολογισμός της απόδοσης του χαρτοφυλακίου με τον μέγιστο δείκτη Sharpe
+returns['Portfolio4'] = np.dot(returns_1,weights_max) # υπολογίζουμε τις ημερήσιες αποδόσεις του χαρτοφυλακίου και τις αποθηκεύουμε στο dataframe returns ως Portfolio4
+portfolio_annual_return = returns['Portfolio4'].mean()*250 # υπολογίζουμε την ετησιοποιημένη απόδοση του χαρτοφυλακίου
+#εμφανίζουμε την ετησιοποιημένη απόδοση του χαρτοφυλακίου
+print('Η ετησιοποιημένη απόδοση του χαρτοφυλακίου είναι: ' + str(np.round(portfolio_annual_return,3)*100)+'%')
+
+# γραφική αναπαράσταση μιας επένδυσης €1 σε αυτά τα τέσσερα χαρτοφυλάκια τον τελευταίο χρόνο
+cum_return = (1+returns).cumprod()
+cum_return.Portfolio1.dropna().plot()
+cum_return.Portfolio2.dropna().plot()
+cum_return.Portfolio3.dropna().plot()
+cum_return.Portfolio4.dropna().plot()
+ax = plt.title("Υποθετική Απόδοση €1",fontsize=12)
+plt.xlabel('Ημερομηνία',fontsize=12)
+plt.ylabel('Αξία',fontsize=12)
+plt.legend(['Ίσες Σταθμίσεις', 'Σταθμίσεις Κεφαλαιοποίησης', 'Χτφ Ελάχιστης Διακύμανσης','Χτφ Μέγιστου Sharpe'])  # Προσθήκη Υπομνήματος με συγκεκριμένες  Ετικέτες Δεδομένων
+plt.show()
+
+# υπολογισμός του κινδύνου για τα 4 χαρτοφυλάκια
+# υπολογισμός του κινδύνου των αποδόσεων του χαρτοφυλακίου με τις ίσες σταθμίσεις
+covariance_matrix = returns_1.cov()*250 # υπολογίζουμε τον πίνακα διακυμάνσεων-συνδιακυμάνσεων των 25 μετοχών
+portfolio_var = np.dot(weights_max.T,np.dot(covariance_matrix,weights)) # υπολογίζουμε τη διακύμανση του χαρτοφυλακίου
+portfolio_std = np.sqrt(portfolio_var) # υπολογίζουμε την τυπική απόκλιση του χαρτοφυλακίου
+print('Η τυπική απόκλιση του χαρτοφυλακίου είναι: ' + str(np.round(portfolio_std,4)*100)+'%')
+# υπολογισμός του κινδύνου των αποδόσεων του χαρτοφυλακίου με τις σταθμίσεις με βάση την κεφαλαιοποίηση
+covariance_matrix = returns_1.cov()*250 # υπολογίζουμε τον πίνακα διακυμάνσεων-συνδιακυμάνσεων των 25 μετοχών
+portfolio_var = np.dot(weights_max.T,np.dot(covariance_matrix,weights_mkt)) # υπολογίζουμε τη διακύμανση του χαρτοφυλακίου
+portfolio_std = np.sqrt(portfolio_var) # υπολογίζουμε την τυπική απόκλιση του χαρτοφυλακίου
+print('Η τυπική απόκλιση του χαρτοφυλακίου είναι: ' + str(np.round(portfolio_std,4)*100)+'%')
+# υπολογισμός του κινδύνου των αποδόσεων του χαρτοφυλακίου ελάχιστης διακύμανσης
+covariance_matrix = returns_1.cov()*250 # υπολογίζουμε τον πίνακα διακυμάνσεων-συνδιακυμάνσεων των 25 μετοχών
+portfolio_var = np.dot(weights_min.T,np.dot(covariance_matrix,weights_max)) # υπολογίζουμε τη διακύμανση του χαρτοφυλακίου
+portfolio_std = np.sqrt(portfolio_var) # υπολογίζουμε την τυπική απόκλιση του χαρτοφυλακίου
+print('Η τυπική απόκλιση του χαρτοφυλακίου είναι: ' + str(np.round(portfolio_std,4)*100)+'%')
+# υπολογισμός του κινδύνου των αποδόσεων του χαρτοφυλακίου με τον μέγιστο δείκτη Sharpe
+covariance_matrix = returns_1.cov()*250 # υπολογίζουμε τον πίνακα διακυμάνσεων-συνδιακυμάνσεων των 25 μετοχών
+portfolio_var = np.dot(weights_max.T,np.dot(covariance_matrix,weights_max)) # υπολογίζουμε τη διακύμανση του χαρτοφυλακίου
+portfolio_std = np.sqrt(portfolio_var) # υπολογίζουμε την τυπική απόκλιση του χαρτοφυλακίου
+print('Η τυπική απόκλιση του χαρτοφυλακίου είναι: ' + str(np.round(portfolio_std,4)*100)+'%')
+
+# Γραφική απεικόνιση της σχέσης απόδοση-κινδύνου των χαρτοφυλακίων
+df=pd.concat([returns.mean()*250,np.sqrt(250)*returns.std()],axis=1)
+df.columns = ['returns', 'std']
+ax = sns.scatterplot(x=df['std'],y=df['returns'],marker="o")
+for line in range(0,df.shape[0]):
+     ax.text(df.iloc[line,1], df.iloc[line,0], df.index[line])
+plt.xlabel('Τυπική Απόκλιση',size=12)
+plt.title('Σχέση Κινδύνου-Απόδοσης',size=14)
+plt.ylabel('Ετήσια Απόδοση',size=12)
+ax.tick_params(axis='both', which='major', labelsize=10)
+plt.show()
