@@ -1,0 +1,72 @@
+# Σωρευτικές Αποδόσεις με τη βιβλιοθήκη FinQuant
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+from finquant.portfolio import build_portfolio
+import yfinance as yf
+import pandas as pd
+import matplotlib.pyplot as plt
+# ορίζουμε τις μετοχές για τις οποίες κατεβάζουμε τα ημερήσια κλεισίματα
+tickers = ['AAPL', 'META', 'JPM', 'WMT']  
+prices = pd.DataFrame(columns=tickers)
+prices = yf.download(tickers, period='5y')['Close'] # ορίσαμε μία περίοδο 5 ετών
+pf = build_portfolio(data=prices) # φτιάχνουμε το χαρτοφυλάκιο
+# υπολογίζουμε και εμφανίζουμε τις σωρευτικές αποδόσεις για τις μετοχές
+pf.comp_cumulative_returns().plot().axhline(y = 0, color = "black", lw = 1)
+
+# Αποτελεσματικό Σύνορο με τη βιβλιοθήκη FinQuant
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+from finquant.portfolio import build_portfolio
+import yfinance as yf
+import pandas as pd
+import matplotlib.pyplot as plt
+# ορίζουμε τις μετοχές για τις οποίες κατεβάζουμε τα ημερήσια κλεισίματα
+tickers = ['EXAE.AT', 'OPAP.AT', 'ELPE.AT']  
+prices = pd.DataFrame(columns=tickers)
+prices = yf.download(tickers, period='2y')['Close'] # ορίσαμε μία περίοδο 2 ετών
+pf = build_portfolio(data=prices) # φτιάχνουμε τα χαρτοφυλάκια
+fig = plt.figure(figsize=(10,5)) # ορίζουμε το μέγεθος του γραφήματος
+# Τρέχουμε μια βελτιστοποίησης Monte Carlo (5000 επαναλήψεις) και σχεδιάζουμε τα αποτελέσματα
+opt_w, opt_res = pf.mc_optimisation(num_trials=5000)
+# Σχεδιάζουμε τα αποτελέσματα της βελτιστοποίησης Monte Carlo
+pf.mc_plot_results()
+# Σχεδιάζουμε το Αποτελεσματικό σύνορο
+pf.ef_plot_efrontier()
+# Σχεδιάζουμε τα βέλτιστα χαρτοφυλάκια με βάση το αποτελεσματικό σύνορο
+pf.ef.plot_optimal_portfolios()
+# Τοποθετούμε στο γράφημα τις μεμονωμένες μετοχές
+pf.plot_stocks()
+
+# Υπολογισμός σταθμίσεων των χαρτοφυλακίων με τον χαμηλότερο δυνατό κίνδυνο και τον υψηλότερο δείκτη Sharpe
+# εισαγωγή των βιβλιοθηκών που θα χρειαστούμε
+import yfinance as yf # για να κατεβάσουμε τις τιμές από το Yahoo Finance
+from finquant.portfolio import build_portfolio # εισάγουμε την εντολή του FinQuant για να φτιάξουμε το χαρτοφυλάκιο 
+# Καθορίζουμε τους κωδικούς διαπραγμάτευσης (ticker) των μετοχών που θέλουμε να αναλύσουμε
+tickers = ['EXAE.AT', 'OPAP.AT', 'ELPE.AT']   # Κάνουμε μια λίστα με τους κωδικούς διαπραγμάτευσης
+df_data = yf.download(tickers, period='2y')['Close'] # κατεβάζουμε τις τιμές κλεισίματος για δύο χρόνια
+pf = build_portfolio(data=df_data)
+pf.risk_free_rate = 0.03 # ορίζουμε το επιτόκιο δίχως κίνδυνο
+# υπολογίζουμε τις σταθμίσεις για το χαρτοφυλάκιο με την ελάχιστη μεταβλητότητα
+pf.ef_minimum_volatility(verbose=True)
+# υπολογίζουμε τις σταθμίσεις για το χαρτοφυλάκιο με το μέγιστο Sharpe ratio
+pf.ef_maximum_sharpe_ratio(verbose=True)
+
+# ελαχιστοποίηση κινδύνου για δεδομένο επίπεδο απόδοσης (π.χ. 15%)
+# εισαγωγή των βιβλιοθηκών που θα χρειαστούμε
+import yfinance as yf # για να κατεβάσουμε τις τιμές από το Yahoo Finance
+from finquant.portfolio import build_portfolio # εισάγουμε την εντολή του FinQuant για να φτιάξουμε το χαρτοφυλάκιο 
+# Καθορίζουμε τους κωδικούς διαπραγμάτευσης (ticker) των μετοχών που θέλουμε να αναλύσουμε
+tickers = ['EXAE.AT', 'OPAP.AT', 'ELPE.AT']   # Κάνουμε μια λίστα με τους κωδικούς διαπραγμάτευσης
+df_data = yf.download(tickers, period='2y')['Close'] # κατεβάζουμε τις τιμές κλεισίματος για δύο χρόνια
+pf = build_portfolio(data=df_data)
+pf.risk_free_rate = 0.03 # ορίζουμε το επιτόκιο δίχως κίνδυνο
+pf.ef_efficient_return(0.15, verbose=True)
+
+# μεγιστοποίηση απόδοσης για δεδομένο επίπεδο κινδύνου (π.χ. 20%)
+# εισαγωγή των βιβλιοθηκών που θα χρειαστούμε
+import yfinance as yf # για να κατεβάσουμε τις τιμές από το Yahoo Finance
+from finquant.portfolio import build_portfolio # εισάγουμε την εντολή του FinQuant για να φτιάξουμε το χαρτοφυλάκιο 
+# Καθορίζουμε τους κωδικούς διαπραγμάτευσης (ticker) των μετοχών που θέλουμε να αναλύσουμε
+tickers = ['EXAE.AT', 'OPAP.AT', 'ELPE.AT']   # Κάνουμε μια λίστα με τους κωδικούς διαπραγμάτευσης
+df_data = yf.download(tickers, period='2y')['Close'] # κατεβάζουμε τις τιμές κλεισίματος για δύο χρόνια
+pf = build_portfolio(data=df_data)
+pf.risk_free_rate = 0.03 # ορίζουμε το επιτόκιο δίχως κίνδυνο
+pf.ef_efficient_volatility(0.20, verbose=True)
