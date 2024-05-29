@@ -1,0 +1,118 @@
+# Παράδειγμα 5-1
+# εισάγουμε τις απαραίτητες βιβλιοθήκες
+import pandas as pd
+import numpy as np
+# εισάγουμε τα δεδομένα ως λίστα
+data = {
+    'Year': range(1, 11),
+    'Return_i': [0.08, 0.12, -0.06, 0.14, 0.15, 0.17, -0.08, 0.16, 0.12, 0.12],
+    'Return_j': [0.07, 0.18, 0.12, -0.04, 0.20, 0.18, -0.16, 0.22, 0.14, 0.18]
+}
+# Δημιουργούμε το DataFrame
+df = pd.DataFrame(data)
+# Υπολογίζουμε τη μέση απόδοση
+average_return_i = df['Return_i'].mean()
+average_return_j = df['Return_j'].mean()
+# Υπολογίζουμε τη διακύμανση
+variance_i = df['Return_i'].var()
+variance_j = df['Return_j'].var()
+# Υπολογίζουμε την τυπική απόκλιση
+std_dev_i = df['Return_i'].std()
+std_dev_j = df['Return_j'].std()
+# Υπολογίζουμε την συνδιακύμανση
+covariance_ij = df[['Return_i', 'Return_j']].cov().iloc[0,1]
+# Υπολογίζουμε τον συντελεστή συσχέτισης
+correlation_ij = df[['Return_i', 'Return_j']].corr().iloc[0,1]
+# εμφανίζουμε τα αποτελέσματα
+print(f"Μέση απόδοση μετοχής i: {average_return_i:.3f}")
+print(f"Μέση απόδοση μετοχής j: {average_return_j:.3f}")
+print(f"Διακύμανση μετοχής i: {variance_i:.4f}")
+print(f"Διακύμανση μετοχής j: {variance_j:.4f}")
+print(f"Τυπική Απόκλιση μετοχής i: {std_dev_i:.4f}")
+print(f"Τυπική Απόκλιση μετοχής j: {std_dev_j:.4f}")
+print(f"Συνδιακύμανση μεταξύ μετοχών i και j: {covariance_ij:.6f}")
+print(f"Συσχέτιση μεταξύ μετοχών i και j: {correlation_ij:.4f}")
+
+# Υπολογισμός τυπικής απόκλισης και συσχέτισης για πραγματικές τιμές
+import yfinance as yf
+# Λήψη ημερησίων τιμών για μια μετοχή
+ticker = "OPAP.AT"
+start_date = "2020-01-01"
+end_date = "2022-12-31"
+data = yf.download(ticker, start=start_date, end=end_date)
+# Υπολογισμός Ημερησίων Αποδόσεων
+data['Returns'] = data['Close'].pct_change().dropna()
+# Υπολογισμός Τυπικής Απόκλισης Ημερησίων Αποδόσεων
+returns_std = data['Returns'].std()
+# Υπολογισμός ετησιοποιημένης τυπικής απόκλισης
+trading_days_per_year = 252 # υποθέτουμε 252 εργάσιμες ημέρες μέσα στο έτος
+annualized_std = returns_std * (trading_days_per_year ** 0.5)
+print(f"Τυπική Απόκλιση Ημερησίων Αποδόσεων: {returns_std:.4f}") # με 4 δεκαδικά
+print(f"Τυπική Απόκλιση Ημερησίων Αποδόσεων (%): {returns_std:.2%}") # σε ποσοστό, με 2 δεκαδικά
+print(f"Ετησιοποιημένη Τυπική Απόκλιση Ημερησίων Αποδόσεων: {annualized_std:.4f}") # με 4 δεκαδικά
+print(f"Ετησιοποιημένη Τυπική Απόκλιση Ημερησίων Αποδόσεων (%): {annualized_std:.2%}") # σε ποσοστό, με 2 δεκαδικά
+
+# Υπολογισμός βαθμού συσχέτισης
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import yfinance as yf
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt 
+# Καθορίζουμε τους κωδικούς διαπραγμάτευσης (ticker) των μετοχών που θέλουμε να αναλύσουμε
+tickers = ['HTO.AT', 'OPAP.AT']   # Κάνουμε μια λίστα με τους κωδικούς διαπραγμάτευσης
+data = yf.download(tickers, period='5y')['Close'] # με την εντολή αυτή κατεβάζουμε τις τιμές κλεισίματος για την τελευταία πενταετία των μετοχών του ΟΤΕ και του ΟΠΑΠ και τα μεταφορτώνουμε στο dataframe με την ονομασία data
+returns = data.pct_change().dropna()  # με την εντολή υπολογίζουμε τις ημερήσιες αποδόσεις και για τις δύο μετοχές
+# υπολογίζουμε τον βαθμό συσχέτισης
+corr = returns.corr()
+print(corr) # εμφανίζονται οι συσχετίσεις
+# δημιουργούμε ένα διάγραμμα διασποράς των αποδόσεων των δύο μετοχών
+plt.title('Συσχέτιση αποδόσεων ΟΤΕ-ΟΠΑΠ')
+plt.xlabel('αποδόσεις ΟΤΕ')
+plt.ylabel('αποδόσεις ΟΠΑΠ')
+sns.scatterplot(x="HTO.AT", y="OPAP.AT", data=returns)
+
+# Παράδειγμα 5-2
+# εισάγουμε τις απαραίτητες βιβλιοθήκες
+import numpy as np
+import math
+# εισάγουμε τα δεδομένα ως np.array
+Ps = np.array([0.03, 0.07, 0.09, 0.11, 0.12, 0.14, 0.16, 0.11, 0.1, 0.07])
+Ri = np.array([-0.03, -0.04, -0.01, 0.03, 0.07, 0.1, 0.14, 0.18, 0.2, 0.25])
+Rj = np.array([-0.18, 0.04, 0.05, 0.01, 0.06, 0.09, 0.16, 0.22, 0.2, 0.3])
+Rk = np.array([-0.02, -0.03, 0.04, 0.06, 0.09, 0.16, 0.15, 0.12, 0.06, 0.05])
+# Υπολογίζουμε τις αναμενομένες αποδόσεις
+E_Ri = np.sum(Ps * Ri)
+E_Rj = np.sum(Ps * Rj)
+E_Rk = np.sum(Ps * Rk)
+# Υπολογίζουμε τις διακυμάνσεις
+Var_Ri = np.sum(Ps * (Ri - E_Ri) ** 2)
+Var_Rj = np.sum(Ps * (Rj - E_Rj) ** 2)
+Var_Rk = np.sum(Ps * (Rk - E_Rk) ** 2)
+# Υπολογίζουμε τις τυπικές αποκλίσεις
+Std_Ri = math.sqrt(Var_Ri)
+Std_Rj = math.sqrt(Var_Rj)
+Std_Rk = math.sqrt(Var_Rk)
+# Υπολογίζουμε τις συνδιακυμάνσεις
+Cov_Ri_Rj = np.sum(Ps * (Ri - E_Ri) * (Rj - E_Rj))
+Cov_Ri_Rk = np.sum(Ps * (Ri - E_Ri) * (Rk - E_Rk))
+Cov_Rk_Rj = np.sum(Ps * (Rj - E_Rj) * (Rk - E_Rk))
+# Υπολογίζουμε τις συσχετίσεις
+Corr_Ri_Rj = Cov_Ri_Rj/(Std_Ri*Std_Rj)
+Corr_Ri_Rk = Cov_Ri_Rk/(Std_Ri*Std_Rk)
+Corr_Rk_Rj = Cov_Rk_Rj/(Std_Rk*Std_Rj)
+# εμφανίζουμε τα αποτελέσματα
+print(f"Αναμενόμενη απόδοση μετοχής i: {E_Ri:.3f}")
+print(f"Αναμενόμενη απόδοση μετοχής j: {E_Rj:.3f}")
+print(f"Αναμενόμενη απόδοση μετοχής k: {E_Rk:.3f}")
+print(f"Διακύμανση μετοχής i: {Var_Ri:.4f}")
+print(f"Διακύμανση μετοχής j: {Var_Rj:.4f}")
+print(f"Διακύμανση μετοχής k: {Var_Rk:.4f}")
+print(f"Τυπική Απόκλιση μετοχής i: {Std_Ri:.4f}")
+print(f"Τυπική Απόκλιση μετοχής j: {Std_Rj:.4f}")
+print(f"Τυπική Απόκλιση μετοχής k: {Std_Rk:.4f}")
+print(f"Συνδιακύμανση μεταξύ μετοχών i και j: {Cov_Ri_Rj:.6f}")
+print(f"Συνδιακύμανση μεταξύ μετοχών i και k: {Cov_Ri_Rk:.6f}")
+print(f"Συνδιακύμανση μεταξύ μετοχών k και j: {Cov_Rk_Rj:.6f}")
+print(f"Συσχέτιση μεταξύ μετοχών i και j: {Corr_Ri_Rj:.4f}")
+print(f"Συσχέτιση μεταξύ μετοχών i και k: {Corr_Ri_Rk:.4f}")
+print(f"Συσχέτιση μεταξύ μετοχών k και j: {Corr_Rk_Rj:.4f}")
