@@ -1,0 +1,73 @@
+# Έλεγχος του φαινομένου του Ιανουαρίου
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import yfinance as yf
+import pandas as pd
+import statsmodels.api as sm
+# Ανάκτηση δεδομένων από Yahoo Finance και υπολογισμός αποδόσεων
+stock_data = yf.download('PPC.AT', start='2013-01-01', end='2024-01-01')
+monthly_prices = stock_data['Adj Close'].resample('M').ffill()
+monthly_returns = monthly_prices.pct_change().dropna()  # Drop the first NA value
+# Δημιουργία λεξικού για αντιστοίχιση του αριθμού του μήνα με το αντίστοιχο όνομα
+month_names = {
+    '01': 'Ιανουάριος', '02': 'Φεβρουάριος', '03': 'Μάρτιος',
+    '04': 'Απρίλιος', '05': 'Μάιος', '06': 'Ιούνιος',
+    '07': 'Ιούλιος', '08': 'Αύγουστος', '09': 'Σεπτέμβριος',
+    '10': 'Οκτώβριος', '11': 'Νοέμβριος', '12': 'Δεκέμβριος'
+}
+# Χρησιμοποιούμε την εντολή 'strftime' και την εντολή 'map' για να μετατρέψουμε τους μήνες σε ονόματα
+months = monthly_prices.index.strftime('%m').map(month_names)
+# Δημιουργία ψευδομεταβλητών για κάθε μήνα
+month_dummies = pd.get_dummies(months)
+month_dummies.index = monthly_prices.index  # Align the indices
+# Ορίζουμε και Τρέχουμε την παλινδρόμηση
+X = month_dummies.loc[monthly_returns.index]  # Align X with y values
+y = monthly_returns
+model = sm.OLS(y, X).fit()
+# Εμφανίζουμε το αποτελέσμα της παλινδρόμησης
+print(model.summary())
+
+# Έλεγχος του φαινομένου της Ημέρας της Εβδομάδας
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import yfinance as yf
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+# Ανάκτηση δεδομένων από Yahoo Finance και υπολογισμός αποδόσεων
+stock_data = yf.download('PPC.AT', start='2022-01-01', end='2024-01-01')
+stock_data['Daily Return'] = stock_data['Adj Close'].pct_change()
+# Δημιουργία λεξικού για αντιστοίχιση του αριθμού της ημέρας της εβδομάδας με το αντίστοιχο όνομα
+day_names = {0: 'Δευτέρα', 1: 'Τρίτη', 2: 'Τετάρτη', 3: 'Πέμπτη', 4: 'Παρασκευή'}
+# Χρησιμοποιούμε την εντολή 'dayofweek' και την εντολή 'map' για να μετατρέψουμε τις ημέρες σε ονόματα
+day_of_week = stock_data.index.dayofweek.map(day_names)
+# Δημιουργία ψευδομεταβλητών για κάθε ημέρα της εβδομάδας
+dummies = pd.get_dummies(day_of_week)
+dummies.index = stock_data.index
+# Ορίζουμε και Τρέχουμε την παλινδρόμηση
+X = dummies.loc[stock_data['Daily Return'].dropna().index]
+y = stock_data['Daily Return'].dropna()
+model = sm.OLS(y, X).fit()
+# Εμφανίζουμε το αποτέλεσμα της παλινδρόμησης
+print(model.summary())
+
+# Έλεγχος του φαινομένου της Αλλαγής του Μήνα
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import yfinance as yf
+import pandas as pd
+import statsmodels.api as sm
+# Ανάκτηση δεδομένων από Yahoo Finance και υπολογισμός αποδόσεων
+stock_data = yf.download('PPC.AT', start='2013-01-01', end='2024-01-01')
+stock_data['Daily Return'] = stock_data['Adj Close'].pct_change()
+# Ορίζουμε την περίοδο της αλλαγής του μήνα
+window_start = -4
+window_end = 3
+# Δημιουργία ψευδομεταβλητών για την αλλαγή του μήνα
+stock_data['Αλλαγή Μήνα'] = ((stock_data.index.day >= (stock_data.index.days_in_month + window_start)) |
+                               (stock_data.index.day <= window_end)).astype(int)
+stock_data = stock_data.dropna(subset=['Daily Return'])
+# Ορίζουμε και Τρέχουμε την παλινδρόμηση
+X = stock_data['Αλλαγή Μήνα']
+y = stock_data['Daily Return']
+X_with_constant = sm.add_constant(X)
+model = sm.OLS(y, X_with_constant).fit()
+# Εμφανίζουμε το αποτελέσμα της παλινδρόμησης
+print(model.summary())
