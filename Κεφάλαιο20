@@ -1,0 +1,147 @@
+# Ορισμός Συνάρτησης που υπολογίζει τη σταθμισμένη διάρκεια (duration) ενός ομολόγου
+def calculate_duration(coupon_rate, periods, ytm):
+    """
+    υπολογίζουμε τη σταθμισμένη διάρκεια (duration) ενός ομολόγου
+    Μεταβλητές:
+    coupon_rate (float): Τοκομερίδιο (ως δεκαδικό)
+    periods (int): αριθμός περιόδων
+    ytm (float): Απόδοση στη λήξη (ως δεκαδικό)
+    Αποτέλεσμα:
+    float: σταθμισμένη διάρκεια σε έτη
+    """
+    # Υπολογισμός χρηματικών ροών
+    flows = [coupon_rate] * periods
+    flows[-1] += 1 
+    # Παρούσα αξία χρηματικών ροών
+    periods_array = list(range(1, periods + 1))
+    pv = [x / (1 + ytm) ** y for x, y in zip(flows, periods_array)]
+    price = sum(pv)
+    # Υπολογισμός σταθμίσεων
+    weights = [x / price for x in pv]
+        # Υπολογισμός σταθμισμένης διάρκειας (duration)
+    duration = sum([x * y for x, y in zip(periods_array, weights)])
+    return print("Σταθμισμένη Διάρκεια (duration): {:.4f} {}".format(duration, "χρόνια"))
+
+# Ορισμός Συνάρτησης που υπολογίζει την τροποποιημένη σταθμισμένη διάρκεια (modified duration) ενός ομολόγου
+def calculate_md(coupon_rate, periods, ytm):
+    """
+    υπολογίζουμε την τροποποιημένη σταθμισμένη διάρκεια (modified duration) ενός ομολόγου
+    Μεταβλητές:
+    coupon_rate (float): Τοκομερίδιο (ως δεκαδικό)
+    periods (int): αριθμός περιόδων
+    ytm (float): Απόδοση στη λήξη (ως δεκαδικό)
+    Αποτέλεσμα:
+    float: τροποποιημένη διάρκεια
+    """
+    # Υπολογισμός χρηματικών ροών
+    flows = [coupon_rate] * periods
+    flows[-1] += 1 
+    # Παρούσα αξία χρηματικών ροών
+    periods_array = list(range(1, periods + 1))
+    pv = [x / (1 + ytm) ** y for x, y in zip(flows, periods_array)]
+    price = sum(pv)
+    # Υπολογισμός σταθμίσεων
+    weights = [x / price for x in pv]
+        # Υπολογισμός σταθμισμένης διάρκειας (duration)
+    duration = sum([x * y for x, y in zip(periods_array, weights)])
+# Υπολογισμός τροποποιημένης σταθμισμένης διάρκειας (modified duration)
+    md = duration/(1+ytm)
+    return print(f"Modified Duration (Tροποποιημένη Σταθμισμένη Διάρκεια): {md:.2f}")
+
+# Ορισμός Συνάρτησης που υπολογίζει τη μεταβολή της τιμής ομολόγου με βάση την τροποποιημένη σταθμισμένη διάρκεια (modified duration) ενός ομολόγου
+def calculate_price_change(fv, coupon_rate, periods, n, ytm, dy):
+    """
+    υπολογίζουμε τη μεταβολή της τιμής ομολόγου με βάση την τροποποιημένη σταθμισμένη διάρκεια για μεταβολή της απόδοσης
+    Μεταβλητές:
+    fv (int): ονομαστική αξία ομολογίας
+    coupon_rate (float): Τοκομερίδιο (ως δεκαδικό)
+    periods (int): αριθμός περιόδων
+    n (int): συχνότητα ανατοκισμού
+    ytm (float): Απόδοση στη λήξη (ως δεκαδικό)
+    dy (float): μεταβολή στην Απόδοση στη λήξη (ως δεκαδικό)
+    Αποτέλεσμα:
+    float: Τιμή Ομολόγου με βάση την τροποποιημένη σταθμισμένη διάρκεια
+    """
+    # Υπολογισμός χρηματικών ροών
+    flows = [coupon_rate/n] * periods*n
+    flows[-1] += 1 
+    # Παρούσα αξία χρηματικών ροών
+    periods_array = list(range(1, periods*n + 1))
+    pv = [x / (1 + ytm/n) ** y for x, y in zip(flows, periods_array)]
+    price = sum(pv)
+    # Υπολογισμός σταθμίσεων
+    weights = [x / price for x in pv]
+        # Υπολογισμός σταθμισμένης διάρκειας (duration)
+    duration = sum([x * y for x, y in zip(periods_array, weights)])/n
+        # Υπολογισμός τροποποιημένης σταθμισμένης διάρκειας (modified duration)
+    md = duration/(1+ytm/n)
+        # Υπολογισμός μεταβολής τιμής με βάση την τροποποιημένη σταθμισμένη διάρκεια
+    dp = -md*dy*price*fv
+    new_price = price*fv + dp
+    print(f"Μεταβολή τιμής με βάση την Tροποποιημένη Σταθμισμένη Διάρκεια: {dp:.2f}")
+    print(f"Νέα τιμή με βάση την Tροποποιημένη Σταθμισμένη Διάρκεια: {new_price:.2f}")
+
+# Ορισμός Συνάρτησης που υπολογίζει την κυρτότητα μιας ομολογίας
+def calculate_convexity(coupon_rate, periods, n, ytm):
+    """
+    υπολογίζουμε την κυρτότητα (convexity) μιας ομολογίας
+    Μεταβλητές:
+    coupon_rate (float): Τοκομερίδιο (ως δεκαδικό)
+    periods (int): αριθμός περιόδων
+    n (int): συχνότητα ανατοκισμού
+    ytm (float): Απόδοση στη λήξη (ως δεκαδικό)
+        Αποτέλεσμα:
+    float: κυρτότητα (convexity) ομολογίας
+    """
+    # Υπολογισμός χρηματικών ροών
+    flows = [coupon_rate/n] * periods*n
+    flows[-1] += 1 
+    # Παρούσα αξία χρηματικών ροών
+    periods_array = list(range(1, periods*n + 1))
+    pv = [x / (1 + ytm/n) ** y for x, y in zip(flows, periods_array)]
+    price = sum(pv)
+    # Υπολογισμός σταθμίσεων
+    weights = [x / price for x in pv] 
+       # Υπολογισμός κυρτότητας (convexity)
+    convexity = sum([x * y * (y + 1) / (1 + ytm / n) ** (y + 2) for x, y in zip(flows, periods_array)]) / (price * n**2)
+    return print(f"Κυρτότητα (convexity): {convexity:.4f}")
+
+# Ορισμός Συνάρτησης που υπολογίζει τη μεταβολή της τιμής ομολόγου με βάση και την κυρτότητα
+def calculate_price_change_convexity(fv, coupon_rate, periods, n, ytm, dy):
+    """
+    υπολογίζουμε τη μεταβολή της τιμής ομολόγου με βάση την τροποποιημένη σταθμισμένη διάρκεια και την κυρτότητα για μεταβολή της απόδοσης
+    Μεταβλητές:
+    fv (int): ονομαστική αξία ομολογίας
+    coupon_rate (float): Τοκομερίδιο (ως δεκαδικό)
+    periods (int): αριθμός περιόδων
+    n (int): συχνότητα ανατοκισμού
+    ytm (float): Απόδοση στη λήξη (ως δεκαδικό)
+    dy (float): μεταβολή στην Απόδοση στη λήξη (ως δεκαδικό)
+    Αποτέλεσμα:
+    float: Τιμή Ομολόγου με βάση την τροποποιημένη σταθμισμένη διάρκεια και την κυρτότητα
+    """
+    # Υπολογισμός χρηματικών ροών
+    flows = [coupon_rate/n] * periods*n
+    flows[-1] += 1 
+    # Παρούσα αξία χρηματικών ροών
+    periods_array = list(range(1, periods*n + 1))
+    pv = [x / (1 + ytm/n) ** y for x, y in zip(flows, periods_array)]
+    price = sum(pv)
+    # Υπολογισμός σταθμίσεων
+    weights = [x / price for x in pv]
+        # Υπολογισμός σταθμισμένης διάρκειας (duration)
+    duration = sum([x * y for x, y in zip(periods_array, weights)])/n
+        # Υπολογισμός τροποποιημένης σταθμισμένης διάρκειας (modified duration)
+    md = duration/(1+ytm/n)
+        # Υπολογισμός κυρτότητας (convexity)
+    convexity = sum([x * y * (y + 1) / (1 + ytm / n) ** (y + 2) for x, y in zip(flows, periods_array)]) / (price * n**2)
+        # Υπολογισμός μεταβολής τιμής με βάση την τροποποιημένη σταθμισμένη διάρκεια
+    dp1 = -md*dy*price*fv
+    new_price1 = price*fv + dp1
+        # Υπολογισμός μεταβολής τιμής με βάση και την κυρτότητα
+    dp2 = -md*dy*price*fv + 1/2*price*fv*convexity*(dy**2)
+    new_price2 = price*fv + dp2
+    print(f"Μεταβολή τιμής με βάση την Tροποποιημένη Σταθμισμένη Διάρκεια: {dp1:.2f}")
+    print(f"Νέα τιμή με βάση την Tροποποιημένη Σταθμισμένη Διάρκεια: {new_price1:.2f}")
+    print(f"Μεταβολή τιμής με βάση και την Κυρτότητα: {dp2:.2f}")
+    print(f"Νέα τιμή με βάση και την Κυρτότητα: {new_price2:.2f}")
