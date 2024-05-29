@@ -1,0 +1,25 @@
+# Ανάκτηση Δεικτών Ρ/Ε
+# εισάγουμε τη βιβλιοθήκη
+import yahoo_fin.stock_info as si
+
+# εισάγουμε τα σύμβολα των μετοχών
+tickers_list = [
+    'VIO.AT', 'CENER.AT', 'TITC.AT', 'EEE.AT', 'HTO.AT', 'AEGN.AT',
+    'TENERGY.AT', 'PREMIA.AT', 'EPSIL.AT', 'ENTER.AT', 'ADMIE.AT', 'PLAT.AT',
+    'BRIQ.AT', 'INLIF.AT', 'LAVI.AT', 'BLEKEDROS.AT', 'DIMAND.AT', 'SAR.AT',
+    'AIA.AT', 'AVAX.AT', 'ELLAKTOR.AT', 'OLYMP.AT', 'ELSTR.AT', 'FOYRK.AT',
+    'GEKTERNA.AT', 'IATR.AT', 'BIOKA.AT', 'EKTER.AT', 'MYTIL.AT', 'LAMDA.AT',
+    'INTRK.AT', 'ELHA.AT', 'ALPHA.AT', 'BELA.AT', 'ETE.AT', 'TPEIR.AT', 'ALMY.AT',
+    'EUROB.AT', 'ELPE.AT', 'QUEST.AT', 'PLAKR.AT', 'OTOEL.AT', 'PETRO.AT',
+    'EYDAP.AT', 'IKTIN.AT', 'ELTON.AT', 'EXAE.AT', 'SPACE.AT', 'OPAP.AT',
+    'MOH.AT', 'OLTH.AT', 'EYAPS.AT', 'INKAT.AT', 'PPC.AT', 'CENTR.AT', 'PPA.AT',
+    'KRI.AT', 'INTEK.AT', 'PROF.AT', 'MOTO.AT']
+
+# για την αποθήκευση των P/E
+pe_ratios = {}
+
+# η εντολή επανάληψης για την ανάκτηση των P/E
+for ticker in tickers_list:
+    stock_data = si.get_quote_table(ticker)
+    pe_ratio = stock_data.get('PE Ratio (TTM)')
+    print(f"Ο πολλαπλασιαστής κερδών (P/E) για {ticker} είναι: {pe_ratio:.2f}")
