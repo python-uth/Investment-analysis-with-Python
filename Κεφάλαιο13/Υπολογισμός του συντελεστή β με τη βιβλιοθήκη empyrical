@@ -1,0 +1,21 @@
+# Υπολογισμός Συντελεστή β
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import empyrical
+import yfinance as yf
+
+# ορίζουμε τη μετοχή για την οποία θέλουμε να υπολογίσουμε το β και το χρονικό διάστημα για το οποίο θέλουμε να κατεβάσουμε τα ημερήσια κλεισίματα
+ticker = 'AAPL'
+data = yf.download(ticker, period='5y')
+
+# ορίζουμε τον δείκτη της αγοράς
+benchmark = yf.download('^IXIC', period='5y') # εδώ επιλέξαμε τον δείκτη Nasdaq
+
+# υπολογίζουμε τις ημερήσιες αποδόσεις τόσο της μετοχής, όσο και του δείκτη
+returns = data['Close'].pct_change().dropna()
+factor_returns = benchmark['Close'].pct_change().dropna()
+
+# υπολογίζουμε τον συντελεστή β χρησιμοποιώντας την σχετική εντολή της empyrical
+beta = empyrical.stats.beta(returns, factor_returns, risk_free=0.0)
+
+# εμφανίζουμε το αποτέλεσμα
+print("Συντελεστής β για τη μετοχή της {}: {:.3f}".format(ticker, beta))
