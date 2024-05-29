@@ -1,0 +1,245 @@
+# Υπολογισμός συντελεστή β
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import yfinance as yf
+import pandas as pd
+# Ορίζουμε τους κωδικούς διαπραγμάτευσης για τη μετοχή και τον δείκτη
+stock_symbol = 'OPAP.AT'  # Παράδειγμα: ΟΠΑΠ
+index_symbol = 'GD.AT'  # Παράδειγμα: Γενικός Δείκτης Χ.Α.
+# Κατεβάζουμε τα ιστορικά στοιχεία για τα τελευταία 2 χρόνια
+period = '24mo'
+interval = '1d'
+stock_data = yf.download(stock_symbol, period=period, interval=interval)
+index_data = yf.download(index_symbol, period=period, interval=interval)
+# Υπολογίζουμε τις ημερήσιες αποδόσεις για μετοχή και δείκτη
+stock_returns = stock_data['Adj Close'].pct_change().dropna()
+index_returns = index_data['Adj Close'].pct_change().dropna()
+# Ευθυγραμμίζουμε τις αποδόσεις ως προς την ημερομηνία
+aligned_stock_returns, aligned_index_returns = stock_returns.align(index_returns, join='inner')
+# Υπολογίζουμε τον συντελεστή β
+covariance = aligned_stock_returns.cov(aligned_index_returns)
+variance = aligned_index_returns.var()
+beta = covariance / variance
+# Εμφανίζουμε τον συντελεστή β
+print(f"Συντελεστής β {stock_symbol}: {beta:.2f}")
+
+# Σχεδιάζοντας την Γραμμή Αξιογράφων
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import matplotlib.pyplot as plt
+# εισάγουμε αρχικά τα δεδομένα
+rf = 0.03 # έστω ότι το επικόκιο δίχως κίνδυνο είναι 3%
+rm = 0.1 # έστω ότι η απόδοση του χαρτοφυλακίου της αγοράς είναι 10%
+# υπολογίζουμε την απόδοση και τον κίνδυνο για διαφορετικούς συντελεστές β
+betas = [x/10 for x in range(21)]
+assetReturns = [rf+(rm-rf)*x for x in betas]
+# σχεδιάζουμε την Γραμμή
+plt.plot(betas,assetReturns)
+plt.xlabel("Συντελεστής β")
+plt.ylabel("Απόδοση")
+plt.title("Γραμμή Αξιογράφων - SML")
+plt.xlim([0, 2.1])
+plt.ylim([0, 0.18])
+plt.plot(1,rm,"ro")
+plt.text(1, rm, "Χαρτοφυλάκιο Αγοράς", fontsize=10)
+plt.plot(0,rf,"bo")
+plt.text(0,rf, "Επιτόκιο δίχως κίνδυνο", fontsize=10, ha='right')
+
+# Υπολογισμός συντελεστή β ενός χαρτοφυλακίου
+# Εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import yfinance as yf
+import pandas as pd
+import datetime
+# Ορίζουμε τους κωδικούς διαπραγμάτευσης για τις μετοχές και τον δείκτη
+tickers = ['OPAP.AT', 'ETE.AT', 'MYTIL.AT', 'GD.AT']  # Συμπεριλαμβάνουμε και τον δείκτη
+# Ορίζουμε την περίοδο
+start_date = datetime.datetime(2021, 12, 31)
+end_date = datetime.datetime(2023, 12, 31)
+# Κατεβάζουμε τα ιστορικά στοιχεία
+prices = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
+# Ορίζουμε τις σταθμίσεις των μετοχών στο χαρτοφυλάκιο
+weights = [0.25, 0.25, 0.5]  # Οι σταθμίσεις πρέπει να αθροίζουν στη 1
+# Υπολογίζουμε τις ημερήσιες αποδόσεις για μετοχή και δείκτη
+returns = prices.pct_change().dropna()
+# Υπολογίζουμε τον συντελεστή β για κάθε μετοχή
+stock_tickers = ['OPAP.AT', 'ETE.AT', 'MYTIL.AT'] # ξεχωρίζουμε τους κωδικούς διαπραγμάτευσης των μετοχών
+covariances = returns.cov().loc[stock_tickers, 'GD.AT'] # Υπολογίζουμε τη συνδιακύμανση με τον δείκτη
+market_variance = returns['GD.AT'].var() # Υπολογίζουμε τη διακύμανση του δείκτη
+betas = covariances / market_variance # Υπολογίζουμε τον συντελεστή β
+# Υπολογίζουμε τον συντελεστή β του χαρτοφυλακίου
+portfolio_beta = (betas * weights).sum()
+# Εμφανίζουμε τους συντελεστές β
+print("\nΣυντελεστής β για κάθε μετοχή:")
+print(betas)
+print(f"\nΣυντελεστής β χαρτοφυλακίου: {portfolio_beta:.3f}")
+
+# Γραμμή Αξιογράφων με βάση του υπολογιστές β που υπολογίστηκαν
+# Εισάγουμε τις επιπλέον βιβλιοθήκες που θα χρειαστούμε
+import matplotlib.pyplot as plt
+# Υπολογίζουμε τις ετησιοποιημένες αποδόσεις για κάθε μετοχή
+arithmetic_avg = returns.mean().loc[stock_tickers] * 252  # Πολλαπλασιάζουμε τη μέση ημερήσια απόδοση με 252
+# Υπολογίζουμε τον συντελεστή β του χαρτοφυλακίου
+portfolio_returns = (arithmetic_avg * weights).sum()
+# εισάγουμε τα δεδομένα για την SML
+RFR = 0.05 # το επικόκιο δίχως κίνδυνο
+RM = returns['GD.AT'].mean()*252 # η ετησιοποιημένη απόδοση της αγοράς
+RPR = RM - RFR # το ασφάλιστρο κινδύνου
+# υπολογίζουμε την απόδοση για διαφορετικού συντελεστές β
+betas_SML = [x/10 for x in range(21)]
+assetReturns = [RFR+RPR*x for x in betas_SML]
+# σχεδιάζουμε την Γραμμή Αξιογράφων
+fig, ax = plt.subplots()
+ax.plot(betas_SML,assetReturns) # η SML
+ax.scatter(betas, arithmetic_avg) # οι μετοχές
+ax.scatter(portfolio_beta, portfolio_returns) # το χαρτοφυλάκιο
+plt.title("Γραμμή Αξιογράφων - SML") # ορίζουμε τον τίτλο του γραφήματος
+# Προσθέτοντας τον κωδικό διαπραγμάτευσης για κάθε μετο΄χή
+for ticker, beta, avg_return in zip(stock_tickers, betas.values, arithmetic_avg.values):
+    ax.text(beta, avg_return, ticker, fontsize=9)
+# Προσθετοντας το Επιτόκιο δίχως κίνδυνο, το Χαρτοφυλάκιο της Αγοράς και το Χαρτοφυλάκιο
+plt.plot(1,RM,"ro")
+plt.text(1, RM, "Χαρτοφυλάκιο Αγοράς", fontsize=10)
+plt.plot(0,RFR,"bo")
+plt.text(0,RFR, "Επιτόκιο δίχως κίνδυνο", fontsize=10)
+plt.text(portfolio_beta, portfolio_returns, "Χαρτοφυλάκιο", fontsize=10)
+# Ορίζοντας τις ονομασίες και τα όρια των αξόνων
+plt.xlabel("Συντελεστής β")
+plt.ylabel("Απόδοση")
+plt.xlim([0, None]) # για να ξεκινάει ο οριζόντιος άξονας από το σημείο 0
+plt.ylim([0, None]) # για να ξεκινάει ο κάθετος άξονας από το σημείο 0
+plt.show() # εμφανίζουμε το γράφημα
+
+# Απόδοση με βάση το υπόδειγμα CAPM (για τον ΟΤΕ)
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import datetime
+import yfinance as yf
+import pandas as pd
+import pandas_datareader as pdr
+# Ορίζουμε την περίοδο
+start_date = datetime.datetime(2014, 12, 31)
+end_date = datetime.datetime(2023, 12, 31)
+# υπολογίζουμε το Ασφάλιστρο κινδύνου
+# Κατεβάζουμε τις αποδόσεις του 10-ετούς ομολόγου (και μετατρέπουμε σε δεκαδικά)
+bondYields = pdr.fred.FredReader(["IRLTLT01GRM156N"], start_date, end_date).read()
+bondYields['IRLTLT01GRM156N'] = bondYields['IRLTLT01GRM156N']/ 100
+# Κατεβάζουμε τις τιμές του Γενικού Δείκτη
+data = yf.download('GD.AT', start=start_date, end=end_date, interval='1d')
+prices = data['Adj Close']
+# Υπολογίζουμε τις ημερήσιες αποδόσεις
+daily_returns = prices.pct_change().dropna()
+# Ετησιοποιούμε τη μέση ημερήσια απόδοση της περιόδου
+annualized_returns = (1 + daily_returns.mean())**252 - 1
+# Υπολογίζουμε το ασφάλιστρο της αγοράς
+equity_risk_premium = annualized_returns - bondYields['IRLTLT01GRM156N'].mean()
+# Υπολογίζουμε τον συντελεστή β
+# κατεβάζουμε τις τιμές για τη μετοχή και τον δείκτη 
+stock_data = yf.download('HTO.AT', start=start_date, end=end_date)
+index_data = yf.download('GD.AT', start=start_date, end=end_date)
+# Υπολογίζουμε τις ημερήσιες αποδόσεις για μετοχή και δείκτη
+stock_returns = stock_data['Adj Close'].pct_change().dropna()
+index_returns = index_data['Adj Close'].pct_change().dropna()
+# Ευθυγραμμίζουμε τις αποδόσεις ως προς την ημερομηνία
+aligned_stock_returns, aligned_index_returns = stock_returns.align(index_returns, join='inner')
+# Υπολογίζουμε τον συντελεστή β
+covariance = aligned_stock_returns.cov(aligned_index_returns)
+variance = aligned_index_returns.var()
+beta = covariance / variance
+# ορίζουμε το επιτόκιο δίχως κίνδυνο την τελευταία παρατήρηση της περιόδου
+RFR = bondYields['IRLTLT01GRM156N'].iloc[-1]
+# υπολογίζουμε την απόδοση με βάση το CAPM
+capm = RFR + beta*equity_risk_premium
+# εμφανίζουμε τις τιμές για τις τρεις μεταβλητές του CAPM, καθώς και την απαιτούμενη απόδοση με βάση το CAPM για την υπό εξέταση περίοδο
+print(f"Το επιτόκιο δίχως κίνδυνο είναι: {RFR:.2%}")
+print(f"Το ασφάλιστρο κινδύνου της αγοράς για την περίοδο είναι: {equity_risk_premium:.2%}")
+print(f"Ο συντελεστής β για την περίοδο είναι: {beta:.2f}")
+print(f"Η απαιτούμενη απόδοση με βάση το CAPM για την περίοδο είναι: {capm:.2%}")
+
+# Εμπειρικός Έλεγχος του CAPM για ΟΠΑΠ
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import datetime
+import yfinance as yf
+import pandas as pd
+import pandas_datareader as pdr
+import statsmodels.api as sm
+# Ορίζουμε την περίοδο
+start_date = datetime.datetime(2019, 12, 31)
+end_date = datetime.datetime(2022, 12, 31)
+# Κατεβάζουμε τις αποδόσεις του 10-ετούς ομολόγου (και μετατρέπουμε σε δεκαδικά)
+bond_yields = pdr.fred.FredReader(["IRLTLT01GRM156N"], start_date, end_date).read()
+bond_yields['IRLTLT01GRM156N'] = bond_yields['IRLTLT01GRM156N']/ 100
+# Κατεβάζουμε τις τιμές του Γενικού Δείκτη και υπολογίζουμε τις μηνιαίες αποδόσεις
+index_data = yf.download('GD.AT', start=start_date, end=end_date, interval='1mo')
+index_returns = index_data['Adj Close'].pct_change().dropna()
+# κατεβάζουμε τις τιμές για τη μετοχή και υπολογίζουμε τις μηνιαίες αποδόσεις 
+stock_data = yf.download('OPAP.AT', start=start_date, end=end_date, interval='1mo')
+stock_returns = stock_data['Adj Close'].pct_change().dropna()
+# διασφαλίζουμε ότι τα δεδομένα είναι σωστά στοιχισμένα αναφορικά με τις ημερομηνίες
+aligned_index_returns, _ = index_returns.align(bond_yields, join='inner')
+aligned_stock_returns, aligned_bond_yields = stock_returns.align(bond_yields, join='inner')
+# Υπολογίζουμε τις αποδόσεις για τη μετοχή και τον δείκτη σε σχέση με το επιτόκιο δίχως κίνδυνο
+stock_excess_returns = aligned_stock_returns - aligned_bond_yields['IRLTLT01GRM156N'] / 12
+index_excess_returns = aligned_index_returns - aligned_bond_yields['IRLTLT01GRM156N'] / 12
+# Ετοιμάζουμε τα δεδομένα για την παλινδρόμηση
+X = sm.add_constant(index_excess_returns)
+Y = stock_excess_returns
+# Τρέχουμε την παλινδρόμηση
+model = sm.OLS(Y, X).fit()
+# Εμφανίζουμε το αποτέλεσμα της παλινδρόμησης
+model_summary = model.summary()
+print(model_summary)
+
+# Εκτίμηση του βήτα για κάθε μετοχή του Γενικού Δείκτη του Χρηματιστηρίου Αθηνών
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import datetime
+import yfinance as yf
+import pandas as pd
+import pandas_datareader as pdr
+from statsmodels.regression.linear_model import OLS
+from statsmodels.tools.tools import add_constant
+# Ορίζουμε την περίοδο
+start_date = datetime.datetime(2018, 12, 31)
+end_date = datetime.datetime(2022, 12, 31)
+# Κατεβάζουμε τις αποδόσεις του 10-ετούς ομολόγου (και μετατρέπουμε σε δεκαδικά)
+bond_yields = pdr.fred.FredReader(["IRLTLT01GRM156N"], start_date, end_date).read()
+bond_yields['IRLTLT01GRM156N'] = bond_yields['IRLTLT01GRM156N']/100
+# Κατεβάζουμε τις τιμές του Γενικού Δείκτη και υπολογίζουμε τις μηνιαίες αποδόσεις
+index_data = yf.download('GD.AT', start=start_date, end=end_date, interval='1mo')
+index_returns = index_data['Adj Close'].pct_change().dropna()
+# κατεβάζουμε τις τιμές για τις μετοχές και υπολογίζουμε τις μηνιαίες αποδόσεις
+tickers = ['VIO.AT', 'CENER.AT', 'EEE.AT', 'HTO.AT', 'AEGN.AT', 'TENERGY.AT', 'PREMIA.AT',
+ 'ENTER.AT', 'ADMIE.AT', 'PLAT.AT', 'LAVI.AT', 'SAR.AT', 'AVAX.AT', 'ELLAKTOR.AT', 'OLYMP.AT', 'ELSTR.AT', 'FOYRK.AT', 'GEKTERNA.AT',
+ 'IATR.AT', 'BIOKA.AT', 'EKTER.AT', 'MYTIL.AT', 'LAMDA.AT', 'INTRK.AT', 'ELHA.AT', 'ALPHA.AT',
+ 'BELA.AT', 'ETE.AT', 'TPEIR.AT', 'ALMY.AT', 'EUROB.AT', 'ELPE.AT', 'QUEST.AT', 'PLAKR.AT', 'OTOEL.AT',
+ 'PETRO.AT', 'EYDAP.AT', 'IKTIN.AT', 'ELTON.AT', 'EXAE.AT', 'SPACE.AT', 'OPAP.AT', 'MOH.AT', 'OLTH.AT',
+ 'EYAPS.AT', 'INKAT.AT', 'PPC.AT', 'CENTR.AT', 'PPA.AT', 'KRI.AT', 'INTEK.AT', 'PROF.AT', 'MOTO.AT']
+stock_data = yf.download(tickers, start=start_date, end=end_date, interval='1mo')['Adj Close']
+stock_returns = stock_data.pct_change().dropna()
+# διασφαλίζουμε ότι τα δεδομένα είναι σωστά στοιχισμένα αναφορικά με τις ημερομηνίες
+bond_yields_monthly = bond_yields.reindex(stock_returns.index, method='ffill')
+index_returns_aligned = index_returns.reindex(stock_returns.index).fillna(0)
+# Υπολογίζουμε τις αποδόσεις για τις μετοχές και τον δείκτη σε σχέση με το επιτόκιο δίχως κίνδυνο
+excess_returns = stock_returns.subtract(bond_yields_monthly['IRLTLT01GRM156N'], axis=0)
+excess_index_returns = index_returns_aligned.subtract(bond_yields_monthly['IRLTLT01GRM156N'], axis=0)
+# Υπολογίζουμε τους συντελεστές β για τις μετοχές
+betas = {}
+for ticker in excess_returns.columns:
+    # Ετοιμάζουμε τα δεδομένα για την παλινδρόμηση
+    y = excess_returns[ticker]
+    X = add_constant(excess_index_returns_aligned)
+    # Τρέχουμε την παλινδρόμηση
+    model = OLS(y, X).fit()
+    # Αποθηκεύουμε τους συντελεστές β
+    betas[ticker] = model.params[0]
+# εμφανίζουμε τους συντελεστές β
+betas
+
+# Εμπειρικός Έλεγχος του CAPM για Χρηματιστήριο Αθηνών
+# Βήμα 1: Υπολογίζουμε τη μέση υπερβάλλουσα απόδοση για κάθε μετοχή
+average_excess_returns = excess_returns.mean()
+# Βήμα 2: ετοιμάζουμε τα δεδομένα για την παλινδρόμηση
+X = pd.DataFrame(list(betas.values()), columns=['Beta'])
+y = average_excess_returns.values
+X = sm.add_constant(X)
+# Βήμα 3: Τρέχουμε την  παλινδρόμηση
+model = sm.OLS(y, X).fit()
+# Εμφανίζουμε τα αποτελέσματα της παλινδρόμησης
+regression_summary = model.summary()
+regression_summary
