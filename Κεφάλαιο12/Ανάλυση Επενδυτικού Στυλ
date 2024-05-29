@@ -30,7 +30,6 @@ df.drop(columns=['RF'], inplace=True)
 df.dropna(inplace=True)
 
 # υπολογισμός Style Analysis
-
 # ορισμός της συνάρτησης που θα ελαχιστοποιήσουμε
 def objective_function(c, data):
     diff = data['ETF_Returns'] - (c[0] * data['Mkt-RF'] + c[1] * data['SMB'] + c[2] * data['HML'])
