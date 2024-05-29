@@ -1,0 +1,273 @@
+# Συνάρτηση υπολογισμού ετήσιας πραγματοποιθείσας απόδοσης
+# def calculate_realized_return(purchase_price, selling_price, face_value, coupon_rate, coupon_reinvestment_rate, years_to_maturity):
+    """
+    Υπολογισμός της ετήσιας πραγματοποιθείσας απόδοσης ομολογίας
+    :param purchase_price: Η τιμή αγοράς της ομολογίας
+    :param selling_price: Η τιμή πώλησης της ομολογίας (ή ονομαστική αξία αν διακρατείται η ομολογία μέχρι τη λήξη).
+    :param face_value: Η ονομαστική αξία της ομολογίας
+    :param coupon_rate: Το ετήσιο κουπόνι (ως δεκαδικός αριθμός)
+    :param coupon_reinvestment_rate: Το ετήσιο επιτόκιο επανεπένδυσης των τοκομεριδίων (ως δεκαδικός αριθμός).
+    :param years_to_maturity: Ο αριθμός των ετών μέχρι τη λήξη (ή την πώληση) της ομολογίας
+
+    :return: Την ετήσια πραγματοποιθείσα απόδοση της ομολογίας.
+    """
+    # Υπολογισμός ετήσιου τοκομεριδίου
+    coupon_payment = face_value * coupon_rate
+    # Υπολογισμός εσόδου επανεπένδυσης
+    reinvested_interest = sum(coupon_payment * (1 + coupon_reinvestment_rate) ** (years_to_maturity - i) for i in range(1, int(years_to_maturity) + 1))
+    # Υπολογισμός της συνολικής αξίας στο τέλος της περιόδου επένδυσης
+    total_value_end = selling_price + reinvested_interest
+    # Υπολογισμός της ετήσιας πραγματοποιθείσας απόδοσης ομολογίας
+    annualized_realized_return = (total_value_end / purchase_price) ** (1 / years_to_maturity) - 1
+    return print(f"Πραγματική Απόδοση Ομολόγου: {annualized_realized_return:.2%}")
+
+# Υπολογισμός τιμής ομολόγου – Παράδειγμα 19-2
+# εισάγουμε τα δεδομένα του ομολόγου
+fv = 1000 # ονομαστική αξία
+cr = 0.05 # ετήσιο τοκομερίδιο (κουπόνι)
+t = 5 # έτη μέχρι τη λήξη
+n = 1 # συχνότητα πληρωμής τοκομεριδίου μέσα στο έτος
+YTM = 0.06 # απόδοση στη λήξη
+# υπολογίζουμε τις μεταβλητές που θα χρειαστούμε για τον υπολογισμό της τιμής
+coupon_payment = (fv*cr)/n # υπολογίζουμε το τοκομερίδιο ανά περίοδο
+npmt = t*n # ο αριθμός των περιόδων
+r = YTM/n # το επιτόκιο της περιόδου
+# υπολογίζουμε την τιμή του ομολόγου
+bond_price = fv/(1+r)**npmt + coupon_payment*(1-(1+r)**(-npmt))/r # υπολογίζουμε την τιμή του ομολόγου
+print(f"Τιμή Ομολόγου: {bond_price:.2f}") # εμφανίζεται η τιμή του ομολόγου
+
+# Ορισμός Συνάρτησης που σχηματίζει το γράφημα τιμής και απόδοσης ομολογίας
+def plot_bond_value(fv, npmt, cr):
+    """
+    Σχηματίζει το γράφημα τιμής  της ομολογίας για διαφορετικές αποδόσεις στη λήξη
+    Parameters:
+    fv (float): ονομαστική αξία ομολογίας
+    npmt (int): αριθμός περιόδων
+    cr (float): τοκομερίδιο
+    """
+    import matplotlib.pyplot as plt
+    coupon_payment = fv * cr
+    rates = [(x + 1) / 100 for x in range(15)]
+    bond_value = [fv / (1 + r) ** npmt + coupon_payment * (1 - (1 + r) ** (-npmt)) / r for r in rates]
+    plt.plot(rates, bond_value)
+    plt.xlabel("Απόδοση στη Λήξη")
+    plt.ylabel("Τιμή Ομολόγου")
+    plt.title("Σχέση Τιμής Ομολόγου και Απόδοσης στη Λήξη")
+    plt.plot(cr, fv, "ro")
+    plt.text(cr, fv, "Τιμή Ομολόγου = Ονομαστική Αξία", fontsize=10)
+    # Calculate the proportional xmax value
+    xmax_value = (cr) / (max(rates))-0.02 #υπολογίζουμε την αναλογία του τοκομεριδίου σε σχέση με το υψηλότερο επιτόκιο που χρησιμοποιούμε
+    plt.axhline(fv, xmin=0, xmax=xmax_value, color='r', linestyle='--',) # xmin και xmax παίρνουν τιμές μεταξύ 0 και 1, το 0 είναι στην αρχή, ενώ το 1 στο τέλος του γραφήματος
+    ymax_value = (fv) / (max(bond_value))-0.02 #υπολογίζουμε την αναλογία της ονομαστικής αξίας σε σχέση με το υψηλότερη τιμή της ομολογίας
+    plt.axvline(cr, ymin=0, ymax=ymax_value, color='r', linestyle='--',) # ymin και ymax παίρνουν τιμές μεταξύ 0 και 1, το 0 είναι στη βάση, ενώ το 1 στην κορυφή του γραφήματος
+    plt.fill_between(rates, bond_value, 0, alpha=0.2, facecolor='green', interpolate=False)
+    plt.show()
+
+# Υπολογισμός τιμής ομολόγου που πληρώνει το τοκομερίδιο m φορές το χρόνο
+# εισάγουμε τα δεδομένα του ομολόγου
+fv = 1000 # ονομαστική αξία
+cr = 0.05 # ετήσιο τοκομερίδιο (κουπόνι)
+t = 5 # έτη μέχρι τη λήξη
+n = 2 # συχνότητα πληρωμής τοκομεριδίου μέσα στο έτος
+YTM = 0.06 # απόδοση στη λήξη
+# υπολογίζουμε τις μεταβλητές που θα χρειαστούμε για τον υπολογισμό της τιμής
+coupon_payment = (fv*cr)/n # υπολογίζουμε το τοκομερίδιο ανά περίοδο
+npmt = t*n # ο αριθμός των περιόδων
+r = YTM/n # το επιτόκιο της περιόδου
+# υπολογίζουμε την τιμή του ομολόγου
+bond_price = fv/(1+r)**npmt + coupon_payment*(1-(1+r)**(-npmt))/r # υπολογίζουμε την τιμή του ομολόγου
+print(f"Τιμή Ομολόγου: {bond_price:.2f}") # εμφανίζεται η τιμή του ομολόγου
+
+# Δημιουργία Συνάρτησης για τον υπολογισμό της τιμής ενός ομολόγου με την χρήση εντολής def
+def bond_price(fv, cr, t, YTM, n):
+    """
+    Υπολογισμός Τιμής Ομολόγου.
+    
+    :param fv: ονομαστική αξία ομολόγου.
+    :param cr: ετήσιο τοκομερίδιο (κουπόνι) ομολόγου.
+    :param t: έτη μέχρι τη λήξη.
+    :param YTM: απόδοση στη λήξη (ετήσια).
+    :param n: συχνότητα πληρωμής τοκομεριδίου μέσα στο έτος.
+    """
+    coupon_payment = (fv*cr)/n
+    npmt = t*n
+    r = YTM/n
+    price = fv/(1+r)**npmt + coupon_payment*(1-(1+r)**(-npmt))/r
+    return print(f"Τιμή Ομολόγου: {price:.2f}")
+
+# Δημιουργία Συνάρτησης για τον υπολογισμό της τιμής ενός ομολόγου με την χρήση lambda
+bond_price = lambda fv, cr, t, YTM, n: round(fv/(1+(YTM/n))**(t*n) + (fv*cr)/n*(1-(1+(YTM/n))**(-t*n))/(YTM/n) , 2)
+
+# Υπολογισμός απόδοσης στη λήξη ομολόγου
+# εισάγουμε τα δεδομένα του ομολόγου
+fv = 1000 # ονομαστική αξία
+cr = 0.05 # ετήσιο τοκομερίδιο (κουπόνι)
+t = 3 # έτη μέχρι τη λήξη
+n = 1 # συχνότητα πληρωμής τοκομεριδίου μέσα στο έτος
+# Δημιουργία Συνάρτησης για τον υπολογισμό της τιμής ενός ομολόγου
+def bond_price(fv, cr, t, YTM, n):
+    coupon_payment = (fv*cr)/n
+    npmt = t*n
+    r = YTM/n
+    return fv/(1+r)**npmt + coupon_payment*(1-(1+r)**(-npmt))/r
+import scipy.optimize as optimize
+# Δημιουργία Συνάρτησης για τον υπολογισμό της απόδοσης στη λήξη ενός ομολόγου
+def bond_ytm(price, guess=0.05):
+    ytm_func = lambda YTM: bond_price(fv, cr, t, YTM, n) - price
+    bond_yield = optimize.newton(ytm_func, guess)
+    return print(f"Απόδοση στη Λήξη: {bond_yield:.2%}")
+
+# Υπολογισμός απόδοσης στη λήξη ομολόγου (με εντολή def)
+# εισάγουμε τα δεδομένα του ομολόγου
+fv = 1000 # ονομαστική αξία
+cr = 0.05 # ετήσιο τοκομερίδιο (κουπόνι)
+t = 3 # έτη μέχρι τη λήξη
+n = 1 # συχνότητα πληρωμής τοκομεριδίου μέσα στο έτος
+# Δημιουργία Συνάρτησης για τον υπολογισμό της τιμής ενός ομολόγου
+def bond_price(fv, cr, t, YTM, n):
+    coupon_payment = (fv*cr)/n
+    npmt = t*n
+    r = YTM/n
+    return fv/(1+r)**npmt + coupon_payment*(1-(1+r)**(-npmt))/r
+import scipy.optimize as optimize
+# Δημιουργία Συνάρτησης για τον υπολογισμό της απόδοσης στη λήξη ενός ομολόγου
+def bond_ytm(price, guess=0.05):
+    def ytm_func(YTM):
+        return abs(bond_price(fv, cr, t, YTM, n) - price)
+    bond_yield = optimize.newton(ytm_func, guess)
+    return print(f"Απόδοση στη Λήξη: {bond_yield:.2%}")
+
+# Δημιουργία Συνάρτησης για τον υπολογισμό του Πραγματικού Ετήσιου Επιτοκίου (EAR)
+def calculate_ear(r, n):
+    """
+    Η συνάρτηση αυτή υπολογίζει το Πραγματικό Ετήσιο Επιτόκιο (EAR).
+
+    Παράμετροι:
+    r (float): Ονομαστικό επιτόκιο (ως δεκαδικός αριθμός (με τελεία, όχι υποδιαστολή) π.χ., 10% είναι 0.1).
+    n (int): Αριθμός των περιόδου ανατοκισμού εντός του έτους (π.χ. τριμηνιαίος ανατοκισμός, τότε n =4).
+
+    Αποτέλεσμα:
+    float: πραγματικό Ετήσιο Επιτόκιο (EAR).
+    """
+    ear = (1 + r/n)**n - 1
+    return print(f"Πραγματικό Ετήσιο Επιτόκιο: {ear*100:.3f}%")
+
+# Υπολογισμός τιμής ομολόγου με δεδουλευμένους τόκους 
+import math
+# εισάγουμε τα δεδομένα του ομολόγους
+fv = 1000  # Ονομαστική Αξία
+cr = 0.06  # ετήσιο τοκομερίδιο (κουπόνι)
+t = 5 + 8/12  # έτη μέχρι τη λήξη
+n = 2  # συχνότητα πληρωμής τοκομεριδίου μέσα στο έτος
+YTM = 0.08  # επιτόκιο της αγοράς (ΥΤΜ)
+
+# Υπολογισμός των μεταβλητών που απαιτούνται για τον υπολογισμό της τιμής
+coupon_payment = (fv * cr) / n  # υπολογίζουμε το τοκομερίδιο ανά περίοδο
+npmt = t * n  # ο αριθμός των περιόδων 
+r = YTM / n  # το επιτόκιο της περιόδου
+days_in_coupon_period = 360/n # Ημέρες μεταξύ τοκομεριδίων
+days_until_maturity = t*360 # Ημέρες μέχρι τη λήξη
+days_since_last_coupon = days_in_coupon_period - (days_until_maturity % days_in_coupon_period) # Ημέρες μετά το τοκομερίδιο
+# Υπολογισμός της τιμής της ομολογίας
+price = sum([coupon_payment / (1 + r) ** (i - days_since_last_coupon/days_in_coupon_period) for i in range(1, int(npmt)+2)]) + fv / (1 + r) ** npmt
+print(f"Τιμή Ομολογίας με δεδουλευμένους τόκους: {price:.2f}")
+
+# Υπολογισμός τιμής ομολόγου με δεδουλευμένους τόκους (εναλλακτικός τρόπος)
+import math
+# εισάγουμε τα δεδομένα του ομολόγου
+fv = 1000 # ονομαστική αξία
+cr = 0.06 # ετήσιο τοκομερίδιο (κουπόνι)
+t = 5+8/12 # έτη μέχρι τη λήξη
+n = 2 # συχνότητα πληρωμής τοκομεριδίου μέσα στο έτος
+YTM = 0.08 # επιτόκιο της αγοράς (ΥΤΜ)
+# Υπολογισμός των μεταβλητών που απαιτούνται για τον υπολογισμό της τιμής
+rounded_t = math.floor(t * 2) / 2 # στρογγυλοποίηση της λήξης στην τελευταία πληρωμή τοκομεριδίου
+days_in_coupon_period = 360/n # Ημέρες μεταξύ τοκομεριδίων
+days_until_maturity = t*360 # Ημέρες μέχρι τη λήξη
+days_since_last_coupon = days_in_coupon_period - (days_until_maturity % days_in_coupon_period) # Ημέρες μετά το τοκομερίδιο
+coupon_payment = (fv*cr)/n # υπολογίζουμε το τοκομερίδιο ανά περίοδο
+npmt = rounded_t*n # ο αριθμός των περιόδων
+r = YTM/n # το επιτόκιο της περιόδου
+# υπολογίζουμε την τιμή του ομολόγου
+clean_price = fv/(1+r)**npmt + coupon_payment*(1-(1+r)**(-npmt))/r # υπολογίζουμε την τιμή του ομολόγου
+days_since_last_coupon = days_in_coupon_period - (days_until_maturity % days_in_coupon_period)
+accrued_interest = (((days_since_last_coupon / days_in_coupon_period) * coupon_payment))
+dirty_price = (clean_price + coupon_payment) / ((1+r) ** ((days_in_coupon_period-days_since_last_coupon) / days_in_coupon_period))
+print(f"Τιμή Ομολογίας χωρίς δεδουλευμένους τόκους: {clean_price:.2f}")
+print(f"Τιμή Ομολογίας με δεδουλευμένους τόκους: {dirty_price:.2f}")
+
+# Υπολογισμός τιμής ομολόγου μηδενικού τοκομεριδίου (zero-coupon bond)
+par = 1000 # ονομαστική αξία
+YTM = 0.043 # απόδοση στη λήξη
+t = 5 # έτη μέχρι τη λήξη
+zero_coupon_bond_price = par/(1+YTM)**(t)
+print(f"Τιμή Ομολόγου: {zero_coupon_bond_price:.2f}") # εμφανίζεται η τιμή του ομολόγου
+
+# Υπολογισμός απόδοσης ομολόγου μηδενικού τοκομεριδίου (zero-coupon bond)
+par = 1000 # ονομαστική αξία
+price = 810.17 # τρέχουσα τιμή
+t = 5 # έτη μέχρι τη λήξη
+
+zero_coupon_yield = (par/price)**(1/t) - 1
+print(f"Απόδοση Ομολόγου: {zero_coupon_yield:.2%}") # εμφανίζεται η απόδοση του ομολόγου
+
+# Ορισμός συνάρτησης για υπολογισμό ετήσιων προθεσμιακών επιτοκίων
+def calculate_forward_rates(spot_rates, times):
+    """
+    Υπολογισμός Προθεσμιακών επιτοκίων (forward rates) από τρέχοντα επιτόκια (spot rates)
+
+    :param spot_rates: Μια λίστα από τρέχοντα επιτόκια (spot rates).
+    :param times:Μια λίστα από διάρκειες (n) για τα τρέχοντα επιτόκια.
+    """
+    # Μήνυμα Λάθους σε περίπτωση διαφορετικού αριθμού επιτοκίων και διάρκειας
+    if len(spot_rates) != len(times):
+        raise ValueError("Ο αριθμός των επιτοκίων πρέπει να είναι ίσος με τον αριθμό των διάρκειων")
+    print("Προθεσμιακά Επιτόκια:")
+    # Ταξινόμηση των επιτοκίων με βάση τη διάρκεια
+    rates_times = sorted(zip(times, spot_rates), key=lambda x: x[0])
+    # Αποσυμπίεση και εξαγωγή των δεδομένων
+    sorted_times, sorted_rates = zip(*rates_times)
+    for i in range(1, len(sorted_rates)):
+        r_n = sorted_rates[i]
+        r_n_minus_1 = sorted_rates[i - 1]
+        t_n = sorted_times[i]
+        t_n_minus_1 = sorted_times[i - 1]
+        # Υπολογισμός των προθεσμιακών επιτοκίων
+        f_n = ((1 + r_n) ** t_n / (1 + r_n_minus_1) ** t_n_minus_1) - 1
+        # Εμφάνιση των προθεσμιακών επιτοκίων
+        print(f"Προθεσμιακό Επιτόκιο από έτος {t_n_minus_1} σε έτος {t_n} = {f_n:.2%}")
+
+# Καμπύλη Επιτοκίων (Yield Curve) Αμερικανικών Κυβερνητικών Ομολόγων
+import datetime
+import pandas_datareader as pdr
+import matplotlib.pyplot as plt
+# Ανακτούμε τα επιτόκια από την ιστοσελίδα της Αμερικανικής Ομοσπονδιακής Τράπεζας για συγκεκριμένη ημερομηνία
+start = datetime.datetime(2023, 1, 1)
+end = datetime.datetime(2023, 1, 1)
+bondYields = pdr.fred.FredReader(["TB3MS","TB6MS","TB1YR","GS5","GS10","GS30"], start, end).read()
+# Σχεδιάζουμε την καμπύλη επιτοκίων
+plt.plot(['3m','6m','1y','5y','10y','30y'],bondYields.iloc[-1,:])
+plt.title("Καμπύλη Απόδοσης (Yield Curve) Αμερικανικών επιτοκίων")
+plt.xlabel("Διάρκεια")
+plt.ylabel("Απόδοση")
+plt.show()
+
+# Καμπύλη Απόδοσης των Ελληνικών επιτοκίων
+import pandas as pd
+import matplotlib.pyplot as plt
+tables = pd.read_html('https://www.bankofgreece.gr/statistika/xrhmatopistwtikes-agores/titloi-ellhnikoy-dhmosioy') #διαβάζουμε από την ιστοσελίδα της ΤτΕ τα στοιχεία για τα Ελληνικά Ομόλογα
+first_row = tables[0].iloc[0] #απομον΄ώνουμε την πρώτη γραμμή, που περιέχει τα πιο πρόσφατα στοιχεία
+#παίρνουμε τις αποδόσεις για κάθε ομόλογο
+y3 = float(first_row[2])/100 #μετατρέπουμε το νούμερο σε δεκαδικό και διαρούμε με το 100, γιατί λόγω της υποδιαστολής η Python δεν "κατάλαβε" τα ποσοστά
+y5 = float(first_row[4])/100
+y7 = float(first_row[6])/100
+y10 = float(first_row[8])/100
+y15 = float(first_row[10])/100
+y20 = float(first_row[12])/100
+y30 = float(first_row[14])/100
+# Σχεδιάζουμε την καμπύλη επιτοκίων
+plt.plot(['3y','5y','7y','10y','15y','20y','30y'],[y3, y5, y7, y10, y15, y20, y30])
+plt.title("Καμπύλη Επιτοκίων (Yield Curve) Ομολόγων Ελληνικού Δημοσίου")
+plt.xlabel("Διάρκεια")
+plt.ylabel("Απόδοση (%)")
+plt.show()
