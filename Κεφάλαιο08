@@ -1,0 +1,101 @@
+# Το υπόδειγμα των τριών παραγόντων των Fama και French
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import yfinance as yf
+import pandas_datareader.data as web
+import statsmodels.api as sm
+import datetime
+import pandas as pd
+# Ορίζουμε την χρονική περίοδο
+start = datetime.datetime(2014, 1, 1)
+end = datetime.datetime(2024, 1, 1)
+# Κατεβάζουμε τα δεδομένα της μετοχής
+stock_symbol = "AAPL" 
+stock_data = yf.download(stock_symbol, start=start, end=end)
+# Υπολογίζουμε τις αποδόσεις
+stock_data['Return'] = stock_data['Adj Close'].pct_change()
+# Κατεβάζουμε τα δεδομένα για το υπόδειγμα των Fama and French (τρεις παράγοντες, ημερήσια δεδομένα)
+ff_factors = web.DataReader('F-F_Research_Data_Factors_daily', 'famafrench', start, end)[0] / 100
+# Ενώνουμε τα δύο dataframe, λαμβάνοντας υπόψη τις διαφορετικές ημερομηνίες
+ff_factors.index = ff_factors.index.format()
+stock_data = stock_data.reset_index()
+stock_data['Date'] = stock_data['Date'].dt.strftime('%Y-%m-%d')
+merged_data = pd.merge(stock_data, ff_factors, how='inner', left_on='Date', right_index=True)
+merged_data.dropna(inplace=True)
+# Υπολογίζουμε την απόδοση της μετοχής πάνω από το επιτόκιο δίχως κίνδυνο
+merged_data['ExcessReturn'] = merged_data['Return'] - merged_data['RF']
+# Τρέχουμε την παλινδρόμηση για το υπόδειγμα των τριών παραγόντων των Fama-French
+X = merged_data[['Mkt-RF', 'SMB', 'HML']]
+Y = merged_data['ExcessReturn']
+X = sm.add_constant(X)
+ff_model = sm.OLS(Y, X).fit()
+# Εμφανίζουμε τα αποτελέσματα της παλινδρόμησης
+print(ff_model.summary())
+
+# Το υπόδειγμα των τεσσάρων παραγόντων του Carhart
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import yfinance as yf
+import pandas_datareader.data as web
+import statsmodels.api as sm
+import datetime
+import pandas as pd
+# Ορίζουμε την χρονική περίοδο
+start = datetime.datetime(2014, 1, 1)
+end = datetime.datetime(2024, 1, 1)
+# Κατεβάζουμε τα δεδομένα της μετοχής
+stock_symbol = "AAPL" 
+stock_data = yf.download(stock_symbol, start=start, end=end)
+# Υπολογίζουμε τις αποδόσεις
+stock_data['Return'] = stock_data['Adj Close'].pct_change()
+# Κατεβάζουμε τα δεδομένα για το υπόδειγμα των Fama and French (τρεις παράγοντες και momentum, ημερήσια δεδομένα)
+ff_factors = web.DataReader('F-F_Research_Data_Factors_daily', 'famafrench', start, end)[0] / 100
+mom = web.DataReader('F-F_Momentum_Factor_daily', 'famafrench', start, end)[0] / 100
+# Ενώνουμε τα τρία dataframe, λαμβάνοντας υπόψη τις διαφορετικές ημερομηνίες
+ff_factors.index = pd.to_datetime(ff_factors.index)
+mom.index = pd.to_datetime(mom.index)
+stock_data.index = pd.to_datetime(stock_data.index)
+merged_df = pd.merge(stock_data[['Return']], ff_factors, left_index=True, right_index=True, how='inner')
+final_df = pd.merge(merged_df, mom, left_index=True, right_index=True, how='inner')
+# Υπολογίζουμε την απόδοση της μετοχής πάνω από το επιτόκιο δίχως κίνδυνο
+final_df.dropna(inplace=True)
+final_df['ExcessReturn'] = final_df['Return'] - final_df['RF']
+# Τρέχουμε την παλινδρόμηση για το υπόδειγμα των τριών παραγόντων των Fama-French
+X = final_df[['Mkt-RF', 'SMB', 'HML', 'Mom   ']]
+Y = final_df['ExcessReturn']
+X = sm.add_constant(X)
+ff_model = sm.OLS(Y, X).fit()
+# Εμφανίζουμε τα αποτελέσματα της παλινδρόμησης
+print(ff_model.summary())
+
+# Το υπόδειγμα των πέντε παραγόντων των Fama και French
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import yfinance as yf
+import pandas_datareader.data as web
+import statsmodels.api as sm
+import datetime
+import pandas as pd
+# Ορίζουμε την χρονική περίοδο
+start = datetime.datetime(2014, 1, 1)
+end = datetime.datetime(2024, 1, 1)
+# Κατεβάζουμε τα δεδομένα της μετοχής
+stock_symbol = "AAPL" 
+stock_data = yf.download(stock_symbol, start=start, end=end)
+# Υπολογίζουμε τις αποδόσεις
+stock_data['Return'] = stock_data['Adj Close'].pct_change()
+# Κατεβάζουμε τα δεδομένα για το υπόδειγμα των Fama and French (τρεις παράγοντες, ημερήσια δεδομένα)
+ff_factors = web.DataReader(F-F_Research_Data_5_Factors_2x3_daily', 'famafrench', start, end)[0] / 100
+# Ενώνουμε τα δύο dataframe, λαμβάνοντας υπόψη τις διαφορετικές ημερομηνίες
+ff_factors.index = ff_factors.index.format()
+stock_data = stock_data.reset_index()
+stock_data['Date'] = stock_data['Date'].dt.strftime('%Y-%m-%d')
+merged_data = pd.merge(stock_data, ff_factors, how='inner', left_on='Date', right_index=True)
+merged_data.dropna(inplace=True)
+# Υπολογίζουμε την απόδοση της μετοχής πάνω από το επιτόκιο δίχως κίνδυνο
+merged_data['ExcessReturn'] = merged_data['Return'] - merged_data['RF']
+# Τρέχουμε την παλινδρόμηση για το υπόδειγμα των τριών παραγόντων των Fama-French
+X = merged_data[['Mkt-RF', 'SMB', 'HML','RMW','CMA']]
+Y = merged_data['ExcessReturn']
+X = sm.add_constant(X)
+ff_model = sm.OLS(Y, X).fit()
+# Εμφανίζουμε τα αποτελέσματα της παλινδρόμησης
+print(ff_model.summary())
+
