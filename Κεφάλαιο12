@@ -1,0 +1,72 @@
+# Υπολογισμός Δεικτών Sharpe, Treynor, Jensen α και Information Ratio
+# εισάγουμε τις βιβλιοθήκες που θα χρειαστούμε
+import numpy as np
+import pandas as pd
+import yfinance as yf
+
+# Καθορίζουμε τον κωδικό διαπραγμάτευσης (ticker symbol) της μετοχής που θέλουμε να αναλύσουμε
+ticker = "HTO.AT"  # Εδώ βάζουμε τον κωδικό διαπραγμάτευσης της μετοχής 
+
+# Καθορίζουμε την χρονική περίοδο για την οποία θέλουμε να κατεβάσουμε τιμές
+start_date = "2021-01-01"  # Εδώ βάζουμε την αρχική ημερομηνία με τη μορφή "ΕΕΕΕ-ΜΜ-ΗΗ"
+end_date = "2023-12-31"  # Εδώ βάζουμε την τελική ημερομηνία με τη μορφή "ΕΕΕΕ-ΜΜ-ΗΗ"
+
+# Κατεβάζουμε τις ιστορικές τιμές χρησιμοποιώντας το yfinance
+data = yf.download(ticker, start=start_date, end=end_date)
+market = yf.download('GD.AT', start=start_date, end=end_date)
+
+# Υπολογισμός ημερήσιων αποδόσεων
+data['Returns'] = data['Adj Close'].pct_change()
+market['Market Returns'] = market['Adj Close'].pct_change()
+
+# Καθορίζουμε το επιτόκιο δίχως κίνδυνο (ετήσιο)
+risk_free_rate_annual = 0.02
+risk_free_rate_daily = (1 + risk_free_rate_annual) ** (1/252) - 1  # μετατρέπουμε το επιτόκιο σε ημερήσιο
+
+# Δημιουργούμε ένα DataFrame
+returns_df = pd.DataFrame({
+    'ticker': data['Returns'],
+    'Market': market['Market Returns'],
+    'RiskFreeRate': risk_free_rate_daily
+})
+
+# Σβήνουμε τις παρατηρήσεις που δεν υπάρχουν (NaN)
+returns_df = returns_df.dropna()
+
+# Υπολογισμός της υπερβάλουσας απόδοσης (excess returns)
+returns_df['Excess Return ticker'] = returns_df['ticker'] - returns_df['RiskFreeRate']
+returns_df['Excess Return Market'] = returns_df['Market'] - returns_df['RiskFreeRate']
+
+# Υπολογισμός της μέσης υπερβάλουσας απόδοσης (excess returns)
+avg_daily_return = returns_df['Excess Return ticker'].mean()
+avg_daily_return_market = returns_df['Excess Return Market'].mean()
+
+# Ετησιοποίηση της μέσης υπερβάλουσας απόδοσης
+avg_annual_return = (1 + avg_daily_return) ** 252 - 1
+avg_annual_return_market = (1 + avg_daily_return_market) ** 252 - 1
+
+# Υπολογισμός τυπικής απόκλισης
+std_dev = returns_df['Excess Return ticker'].std()
+annual_std_dev = returns_df['Excess Return ticker'].std() * np.sqrt(252)
+
+# Υπολογισμός συντελεστή β
+covariance = returns_df[['Excess Return ticker', 'Excess Return Market']].cov().iloc[0,1]
+market_variance = returns_df['Excess Return Market'].var()
+beta = covariance / market_variance
+
+# Υπολογισμός Sharpe Ratio
+sharpe_ratio = (avg_annual_return - risk_free_rate_annual) / annual_std_dev
+
+# Υπολογισμός Treynor Ratio
+treynor_ratio = (avg_annual_return - risk_free_rate_annual) / beta
+
+# Υπολογισμός Jensen's Alpha
+jensens_alpha = avg_annual_return - (risk_free_rate_annual + beta * (avg_annual_return_market - risk_free_rate_annual))
+
+# Υπολογισμός Information Ratio
+information_ratio = (avg_daily_return / std_dev)* np.sqrt(252)
+
+print("Δείκτης Sharpe: {:.4f}".format(sharpe_ratio))
+print("Δείκτης Treynor: {:.4f}".format(treynor_ratio))
+print("Δείκτης Jensen α: {:.4f}".format(jensens_alpha))
+print("Δείκτης Information Ratio: {:.4f}".format(information_ratio))
